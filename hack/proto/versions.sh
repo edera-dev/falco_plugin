@@ -2,8 +2,8 @@
 # shellcheck disable=SC2034
 set -e
 
-PROTOC_GEN_PROST_REPOSITORY="https://github.com/edera-dev/protoc-gen-prost.git"
-PROTOC_GEN_PROST_COMMIT=94b56ce1d898398167a0e38b35e79658a3622972
+PROTOC_GEN_PROST_REPOSITORY="https://github.com/neoeinstein/protoc-gen-prost.git"
+PROTOC_GEN_PROST_COMMIT=66b503dd1631bc2eaf79db37cde74b01567c8224
 BUF_COMMIT=69a3227530199878cc50df6ce889b176b498e077
 
 BUF_VERSION=v1.56.0
