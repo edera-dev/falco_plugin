@@ -2,9 +2,9 @@ mod base_plugin;
 mod extract_plugin;
 mod parse_plugin;
 mod parsers;
+mod proto;
 mod source_plugin;
 mod threadstate;
-mod proto;
 
 use falco_plugin::{extract_plugin, parse_plugin, plugin, source_plugin};
 

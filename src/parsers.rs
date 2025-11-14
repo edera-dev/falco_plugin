@@ -1,13 +1,13 @@
+use crate::proto::generated::protect::control::v1::ZoneKernelFdInfo;
+use crate::proto::generated::protect::control::v1::{
+    ZoneKernelSyscallEvent, ZoneKernelThreadInfo, zone_kernel_fd_info_data::InfoType,
+};
 use anyhow::{Result, anyhow};
 use libscap_bindings::consts as ppm_consts;
 use libscap_bindings::types::{
     ppm_event_code as event_codes, ppm_event_flags as event_flags, scap_l4_proto as l4_types,
 };
 use log::error;
-use crate::proto::generated::protect::control::v1::ZoneKernelFdInfo;
-use crate::proto::generated::protect::control::v1::{
-    ZoneKernelSyscallEvent, ZoneKernelThreadInfo, zone_kernel_fd_info_data::InfoType,
-};
 use std::ffi::CStr;
 use std::fs::File;
 use std::io::{BufRead, BufReader};

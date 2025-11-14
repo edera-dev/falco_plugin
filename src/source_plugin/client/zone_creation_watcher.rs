@@ -1,9 +1,8 @@
-use anyhow::Result;
 use crate::proto::generated::protect::{
     control::v1::ZoneState, control::v1::control_service_client::ControlServiceClient,
 };
+use anyhow::Result;
 use tonic::transport::Channel;
-
 
 use super::edera_client::zone_watcher::ZoneWatcher as watcher;
 use log::{debug, error};
