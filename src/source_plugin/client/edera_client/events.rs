@@ -1,11 +1,11 @@
 use std::{sync::Arc, time::Duration};
 
-use anyhow::Result;
-use log::{error, trace, warn};
 use crate::proto::generated::protect::control::v1::{
     WatchEventsReply, WatchEventsRequest, control_service_client::ControlServiceClient,
     watch_events_reply::Event,
 };
+use anyhow::Result;
+use log::{error, trace, warn};
 use tokio::{sync::broadcast, task::JoinHandle, time::sleep};
 use tokio_stream::StreamExt;
 use tonic::{Streaming, transport::Channel};

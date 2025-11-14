@@ -1,10 +1,10 @@
 use super::events::EventStream;
-use anyhow::Result;
-use log::warn;
 use crate::proto::generated::protect::control::v1::{
     ListZonesRequest, Zone, ZoneState, control_service_client::ControlServiceClient,
     watch_events_reply::Event,
 };
+use anyhow::Result;
+use log::warn;
 use std::{collections::HashMap, str::FromStr, time::Duration};
 use tokio::{select, sync::broadcast::Receiver, time::sleep};
 use tonic::transport::Channel;
@@ -90,5 +90,4 @@ impl ZoneWatcher {
         }
         Ok(())
     }
-
 }

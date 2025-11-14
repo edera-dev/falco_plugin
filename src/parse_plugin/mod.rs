@@ -1,10 +1,10 @@
+use crate::proto::generated::protect::control::v1::ZoneKernelSyscallEvent;
 use anyhow::Result;
 use falco_event::events::Event;
 use falco_plugin::parse::{EventInput as ParseEventInput, ParseInput, ParsePlugin};
 use falco_plugin::source::PluginEvent;
 use log::{debug, error, warn};
 use prost::Message;
-use crate::proto::generated::protect::control::v1::ZoneKernelSyscallEvent;
 
 use crate::{EderaPlugin, threadstate};
 

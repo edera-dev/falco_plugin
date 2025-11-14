@@ -1,10 +1,10 @@
 use super::dial::ControlDialAddress;
 #[cfg(unix)]
 use super::unix::HyperUnixConnector;
-use anyhow::{Result, bail};
+use crate::proto::generated::protect::control::v1::control_service_client::ControlServiceClient;
 #[cfg(not(unix))]
 use anyhow::anyhow;
-use crate::proto::generated::protect::control::v1::control_service_client::ControlServiceClient;
+use anyhow::{Result, bail};
 use tonic::transport::{Channel, Endpoint};
 
 pub struct ControlClientProvider {}

@@ -1,9 +1,6 @@
 use anyhow::Result;
 use async_stream::stream;
 
-use edera_client::{
-    client::ControlClientProvider, dial::ControlDialAddress, events::EventStream,
-};
 use crate::proto::generated::protect::control::v1::{
     MonitorZoneKernelEventReply, MonitorZoneKernelEventRequest, ZoneKernelEventStreamStop,
     ZoneKernelEventStreamUpdate, ZoneState,
@@ -11,6 +8,7 @@ use crate::proto::generated::protect::control::v1::{
     monitor_zone_kernel_event_request::{self as zk_req},
     watch_events_reply::Event,
 };
+use edera_client::{client::ControlClientProvider, dial::ControlDialAddress, events::EventStream};
 
 mod zone_creation_watcher;
 use log::{debug, error, info, warn};
@@ -22,8 +20,8 @@ use tokio::{
 use tokio_stream::{Stream, StreamExt, wrappers::BroadcastStream};
 use tonic::{Streaming, transport::Channel};
 
-mod enabled_syscalls;
 mod edera_client;
+mod enabled_syscalls;
 
 const DAEMON_SOCKET: &str = "unix:///var/lib/edera/protect/daemon.socket";
 

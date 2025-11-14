@@ -1,3 +1,7 @@
+use crate::proto::generated::protect::control::v1::{
+    ZoneKernelFdInfo, ZoneKernelSyscallEvent, ZoneKernelThreadInfo,
+    zone_kernel_fd_info_data::InfoType,
+};
 use anyhow::{Error, Result, anyhow};
 use dns_lookup::lookup_addr;
 use falco_event::events::Event;
@@ -14,10 +18,6 @@ use libscap_bindings::types::{
 };
 use log::info;
 use prost::Message;
-use crate::proto::generated::protect::control::v1::{
-    ZoneKernelFdInfo, ZoneKernelSyscallEvent, ZoneKernelThreadInfo,
-    zone_kernel_fd_info_data::InfoType,
-};
 use std::collections::{HashMap, HashSet};
 use std::ffi::{CStr, CString};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};

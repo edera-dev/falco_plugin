@@ -1,18 +1,18 @@
+use crate::proto::generated::protect::control::v1::{
+    MonitorZoneKernelEventReply, monitor_zone_kernel_event_reply::Reply,
+};
 use anyhow::{Error, Result, anyhow};
+use env_logger::Env;
 use falco_event::events::EventToBytes;
 use falco_plugin::FailureReason;
 use falco_plugin::source::{EventBatch, EventInput, SourcePlugin, SourcePluginInstance};
 use log::{debug, info, warn};
 use prost::Message;
-use crate::proto::generated::protect::control::v1::{
-    MonitorZoneKernelEventReply, monitor_zone_kernel_event_reply::Reply,
-};
 use std::ffi::{CStr, CString};
 use std::io::BufWriter;
 use std::thread;
 use std::time::Duration;
 use tokio::{runtime, sync::mpsc, sync::oneshot};
-use env_logger::Env;
 
 use crate::EderaPlugin;
 
@@ -105,7 +105,6 @@ impl SourcePlugin for EderaPlugin {
     type Event<'a> = falco_event::events::RawEvent<'a>;
 
     fn open(&mut self, _params: Option<&str>) -> Result<Self::Instance, Error> {
-
         env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
         log::set_max_level(log::LevelFilter::Trace);

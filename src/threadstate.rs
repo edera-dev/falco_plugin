@@ -4,19 +4,20 @@ use libc::{
     SOCK_RAW, SOCK_STREAM,
 };
 
-use libscap_bindings::{consts as ppm_consts,
+use crate::proto::generated::protect::control::v1::{
+    ZoneKernelEventParam, ZoneKernelFdInfo, ZoneKernelFdInfoData, ZoneKernelIpv4SocketInfo,
+    ZoneKernelIpv6SocketInfo, ZoneKernelPidFd, ZoneKernelRegularFileInfo, ZoneKernelSyscallEvent,
+    ZoneKernelThreadInfo, ZoneKernelThreadSnapshotEvent, ZoneKernelUnixSocketInfo,
+    zone_kernel_fd_info_data::InfoType,
+};
+use libscap_bindings::{
+    consts as ppm_consts,
     types::{
         ppm_event_code as event_codes, ppm_param_type as param_type, scap_fd_type as fd_types,
         scap_l4_proto as l4_types,
-    }
+    },
 };
 use log::{debug, error, trace, warn};
-use crate::proto::generated::protect::control::v1::{
-    ZoneKernelEventParam, ZoneKernelFdInfo, ZoneKernelFdInfoData, ZoneKernelIpv4SocketInfo,
-    ZoneKernelIpv6SocketInfo, ZoneKernelPidFd, ZoneKernelRegularFileInfo,
-    ZoneKernelThreadSnapshotEvent, ZoneKernelUnixSocketInfo,
-    ZoneKernelSyscallEvent, ZoneKernelThreadInfo, zone_kernel_fd_info_data::InfoType,
-};
 use std::collections::HashMap;
 use std::ffi::CStr;
 use std::net::{Ipv4Addr, Ipv6Addr};
