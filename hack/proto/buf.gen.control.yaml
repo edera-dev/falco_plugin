@@ -1,0 +1,16 @@
+# See https://buf.build/docs/configuration/v2/buf-gen-yaml/ for documentation on the fields
+version: v2
+managed:
+  enabled: true
+plugins:
+  - local: protoc-gen-prost
+    out: crates/proto/src/generated/protect/control
+    opt:
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+  - local: protoc-gen-prost-serde
+    out: crates/proto/src/generated/protect/control
+  - local: protoc-gen-tonic
+    out: crates/proto/src/generated/protect/control
+inputs:
+  - module: buf.build/edera-dev/protect

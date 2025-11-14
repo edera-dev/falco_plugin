@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+# shellcheck disable=SC2034
+set -e
+
+PROTOC_GEN_PROST_REPOSITORY="https://github.com/edera-dev/protoc-gen-prost.git"
+PROTOC_GEN_PROST_COMMIT=94b56ce1d898398167a0e38b35e79658a3622972
+BUF_COMMIT=69a3227530199878cc50df6ce889b176b498e077
+
+BUF_VERSION=v1.56.0
+PROTOC_GEN_PROST_VERSION=0.4.1
+PROTOC_GEN_TONIC_VERSION=0.4.2
+PROTOC_GEN_PROST_SERDE_VERSION=0.3.2
+
+INSTALL_BUF="go install github.com/bufbuild/buf/cmd/buf@${BUF_COMMIT}"
+INSTALL_PROTOC_GEN_PROST="cargo install --git ${PROTOC_GEN_PROST_REPOSITORY} --rev ${PROTOC_GEN_PROST_COMMIT} protoc-gen-prost"
+INSTALL_PROTOC_GEN_TONIC="cargo install --git ${PROTOC_GEN_PROST_REPOSITORY} --rev ${PROTOC_GEN_PROST_COMMIT} protoc-gen-tonic"
+INSTALL_PROTOC_GEN_PROST_SERDE="cargo install --git ${PROTOC_GEN_PROST_REPOSITORY} --rev ${PROTOC_GEN_PROST_COMMIT} protoc-gen-prost-serde"
