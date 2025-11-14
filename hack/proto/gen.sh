@@ -47,8 +47,7 @@ cd "${REPO_ROOT}" >/dev/null || exit
 
 # We need to clean the directories where the protos are generated into
 # so that files that should no longer be generated are deleted.
-rm -rf crates/proto/src/generated
-rm -rf crates/proto-vendor/src/generated
+rm -rf src/proto/generated
 
 # One generate command per protobuf package. This allows us to create the protobuf hierarchy
 # that the prost generated protobuf files assume, instead of having all the files
