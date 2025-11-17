@@ -7,7 +7,7 @@ The purpose of this plugin is to stream `libscap`-encoded syscall events out of 
 This is necessary because Edera zones are microvms running under a hypervisor, and without this plugin, syscall events from inside Edera zones would be invisible to the host-side Falco runtime.
 
 > [!NOTE]
-> This plugin **must** be built as a `cdylib` explicitly, so the Falco runtime can load it as though it were a C library. Note that currently upstream Rust does not support building `cdylib` with the `x86_64-unknown-linux-musl` target, see: https://github.com/rust-lang/rust/issues/59302 and https://github.com/edera-dev/protect/pull/1823 - building this crate with the `x86_64-unknown-linux-musl` target will result in a (useless to Falco) `rlib` output, only building with `x86_64-unknown-linux-gnu` is supported.
+> This plugin **must** be built as a `cdylib` explicitly, so the Falco runtime can load it as though it were a C library. Note that currently upstream Rust does not support building `cdylib` with the `x86_64-unknown-linux-musl` target, see: https://github.com/rust-lang/rust/issues/59302 - building this crate with the `x86_64-unknown-linux-musl` target will result in a (useless to Falco) `rlib` output, only building with `x86_64-unknown-linux-gnu` is supported.
 
 
 ## Architecture
