@@ -100,8 +100,8 @@ impl EderaSourcePluginInstance {
 
 impl SourcePlugin for EderaPlugin {
     type Instance = EderaSourcePluginInstance;
-    const EVENT_SOURCE: &'static CStr = c"edera-zone";
-    const PLUGIN_ID: u32 = 999; //unassigned/TBD
+    const EVENT_SOURCE: &'static CStr = c"edera_zone";
+    const PLUGIN_ID: u32 = 26;
     type Event<'a> = falco_event::events::RawEvent<'a>;
 
     fn open(&mut self, _params: Option<&str>) -> Result<Self::Instance, Error> {
