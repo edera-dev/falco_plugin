@@ -7,7 +7,7 @@ git_tag_enable = false
 changelog_update = false
 
 [[package]]
-name = "falco_plugin"
+name = "edera_falco_plugin"
 git_release_name = "v{{ version }}"
 git_tag_name = "v{{ version }}"
 git_tag_enable = true
