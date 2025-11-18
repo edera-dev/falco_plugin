@@ -1186,9 +1186,9 @@ dependencies = [
 
 [[package]]
 name = "libscap-bindings"
-version = "0.0.1"
+version = "0.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c753e34392356d62118f8a5aafba5046669b2c0ef5ed6beda73c8d65a452dad"
+checksum = "3d991de3162cf3f663f47fbd3145f01471e70975c163f2371bf42f3f06c9a597"
 dependencies = [
  "anyhow",
  "bindgen",
