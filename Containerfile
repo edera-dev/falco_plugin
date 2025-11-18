@@ -1,4 +1,5 @@
-FROM rust:1.91-bookworm@sha256:7ccbffbca64e04b1c19647e236b2a41c54eb4ee58891faa43ed70379f264db40 AS build
+# This is *not* sha-locked as ghcr doesn't have arch-agnostic SHAs ATM, AFAICT.
+FROM rust:1.91-bookworm AS build
 
 RUN apt-get update && apt-get --assume-yes install protobuf-compiler git clang cmake build-essential llvm-dev libclang-dev jq
 
