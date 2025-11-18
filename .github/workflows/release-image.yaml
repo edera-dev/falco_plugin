@@ -1,0 +1,90 @@
+name: Release falco_plugin (OCI)
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read # Default token to read
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: harden runner
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+        with:
+          egress-policy: audit
+
+      - name: install cosign
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
+
+      - name: checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 #v3.6
+
+      - name: docker setup buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
+
+      - name: docker login ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        with:
+          registry: ghcr.io
+          username: "${{ github.actor }}"
+          password: '${{ github.token }}'
+
+      - name: extract metadata
+        id: meta
+        working-directory: ${{ env.CONTAINERFILE_DIR }}
+        run: |
+          REPO_NAME=${{ github.event.repository.name }}
+          FULL_IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/edera_falco_plugin
+          echo "full-image-name=${FULL_IMAGE_NAME,,}" >> $GITHUB_OUTPUT
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TAGS="${FULL_IMAGE_NAME,,}:pr-${{ github.event.number }}"
+          else
+            TAGS="${FULL_IMAGE_NAME,,}:${{ github.sha }},${FULL_IMAGE_NAME,,}:latest"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+
+      - name: build and push Docker image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        id: push
+        with:
+          context: .
+          file: ./Containerfile
+          platforms: "linux/amd64"
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.title=${{ steps.meta.outputs.target-name }}
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: cosign all images
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          IFS=',' read -ra TAGS <<< '${{ steps.meta.outputs.tags }}'
+          for tag in "${TAGS[@]}"; do
+            pullstring="${tag}@${{ steps.push.outputs.digest }}"
+            echo "Signing ${pullstring}"
+            cosign sign --yes "${pullstring}"
+          done
+        env:
+          DIGEST: '${{ steps.push.outputs.digest }}'
+          COSIGN_EXPERIMENTAL: 'true'
