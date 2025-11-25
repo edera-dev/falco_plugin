@@ -2,7 +2,6 @@ use crate::proto::generated::protect::control::v1::{
     MonitorZoneKernelEventReply, monitor_zone_kernel_event_reply::Reply,
 };
 use anyhow::{Error, Result, anyhow};
-use env_logger::Env;
 use falco_event::events::EventToBytes;
 use falco_plugin::FailureReason;
 use falco_plugin::source::{EventBatch, EventInput, SourcePlugin, SourcePluginInstance};
@@ -105,9 +104,6 @@ impl SourcePlugin for EderaPlugin {
     type Event<'a> = falco_event::events::RawEvent<'a>;
 
     fn open(&mut self, _params: Option<&str>) -> Result<Self::Instance, Error> {
-        env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
-
-        log::set_max_level(log::LevelFilter::Trace);
         let runtime = runtime::Builder::new_multi_thread().enable_all().build()?;
         debug!("spawning event task");
         // TODO(bml) unbounded is probably best here but backpressure might be good in the future.
