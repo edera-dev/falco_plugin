@@ -45,8 +45,8 @@ impl ZoneWatcher {
                             }
                         }
 
-                        // purge everything that's not in the current ready-zone list
-                        last_ready_zones.retain(|existing_zid| ready_zones.contains(existing_zid));
+                        // update tracking: purge zones no longer ready, add newly ready zones
+                        last_ready_zones = ready_zones;
                     }
                     Err(error) => {
                         error!("failed to read zones from daemon: {error}");
