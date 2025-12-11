@@ -48,7 +48,7 @@ falco_plugin_api = { version = "0.5.1" }
 falco_event = { version = "0.5.1" }
 env_logger = "0.11.8"
 hyper = "1.8.0"
-hyper-util = "0.1.18"
+hyper-util = "0.1.19"
 libc = "0.2.178"
 libscap-bindings = { version = "0.0.2", default-features = false }
 log = "0.4.29"
