@@ -48,7 +48,7 @@ falco_plugin_api = { version = "0.5.1" }
 falco_event = { version = "0.5.1" }
 env_logger = "0.11.8"
 hyper = "1.8.0"
-hyper-util = "0.1.18"
+hyper-util = "0.1.19"
 libc = "0.2.178"
 libscap-bindings = { version = "0.0.2", default-features = false }
 log = "0.4.29"
@@ -62,7 +62,7 @@ tonic = "0.14.2"
 tower = "0.5.2"
 url = "2.5.7"
 uuid = { version = "1.19.0", features = ["v4"] }
-pbjson = "0.8.0"
+pbjson = "0.9.0"
 pbjson-types = "0.8.0"
 serde = { version = "1.0.219", features = ["derive"] }
 tonic-prost = { version = "0.14.2" }
