@@ -60,7 +60,7 @@ tokio = { version = "1.49.0", features = ["full"] }
 tokio-stream = { version="0.1.18", features = ["sync"] }
 tonic = "0.14.2"
 tower = "0.5.2"
-url = "2.5.7"
+url = "2.5.8"
 uuid = { version = "1.19.0", features = ["v4"] }
 pbjson = "0.9.0"
 pbjson-types = "0.9.0"
