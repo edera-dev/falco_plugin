@@ -49,18 +49,18 @@ falco_event = { version = "0.5.1" }
 env_logger = "0.11.8"
 hyper = "1.8.0"
 hyper-util = "0.1.19"
-libc = "0.2.179"
-libscap-bindings = { version = "0.0.2", default-features = false }
+libc = "0.2.180"
+libscap-bindings = { version = "0.0.3", default-features = false }
 log = "0.4.29"
 nix = { version = "0.30.1", features = ["signal"] }
 pin-project-lite = "0.2.16"
-prost = "0.14.1"
+prost = "0.14.3"
 strum_macros = "0.27"
 tokio = { version = "1.49.0", features = ["full"] }
 tokio-stream = { version="0.1.18", features = ["sync"] }
 tonic = "0.14.2"
 tower = "0.5.2"
-url = "2.5.7"
+url = "2.5.8"
 uuid = { version = "1.19.0", features = ["v4"] }
 pbjson = "0.9.0"
 pbjson-types = "0.9.0"
