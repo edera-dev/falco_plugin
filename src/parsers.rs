@@ -7,7 +7,7 @@ use libscap_bindings::consts as ppm_consts;
 use libscap_bindings::types::{
     ppm_event_code as event_codes, ppm_event_flags as event_flags, scap_l4_proto as l4_types,
 };
-use log::error;
+use log::debug;
 use std::ffi::CStr;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -250,7 +250,7 @@ pub fn hex_char_to_nibble(c: u8) -> Option<u8> {
 pub fn get_enter_event_fd_loc(event: &ZoneKernelSyscallEvent, etype: event_codes) -> Option<u64> {
     use event_codes::*;
     if !is_enter(event) || !has_fd(event) {
-        error!("not an enter event or has no FD! {:?}", event);
+        debug!("not an enter event or has no FD {:?}", event);
         return None;
     }
 
