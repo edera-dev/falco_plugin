@@ -1,3 +1,5 @@
+# This config disables all other default Falco drivers and syscall capturing and
+# only loads the Edera source plugin.
 plugins:
   - name: edera
     library_path: /var/lib/edera/protect/falco/libedera_falco_plugin.so
