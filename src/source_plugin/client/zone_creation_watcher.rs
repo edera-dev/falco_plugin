@@ -5,7 +5,7 @@ use anyhow::Result;
 use tonic::transport::Channel;
 
 use super::edera_client::zone_watcher::ZoneWatcher as watcher;
-use log::{debug, error};
+use log::{debug, error, warn};
 use tokio::{sync::broadcast, task::JoinHandle};
 
 pub struct ZoneWatcher {}
@@ -35,13 +35,19 @@ impl ZoneWatcher {
                             // to zones that are not in Ready state yet.
                             // We don't care about zones that aren't ready yet, so filter them out.
                             if zone.status == ZoneState::Ready {
-                                // if it's ready, add it to the list whether we've seen it or not.
-                                ready_zones.push(zid.clone());
                                 // send it if we haven't seen it before.
                                 if !last_ready_zones.contains(&zid) {
                                     debug!("got new zone {:?}", zone);
-                                    let _ = tx.send(zid);
+                                    if tx.send(zid.clone()).is_err() {
+                                        // If send fails, don't track it, so we retry next iteration
+                                        warn!(
+                                            "failed to notify subcribers of zone {}, will retry",
+                                            zid
+                                        );
+                                        continue;
+                                    }
                                 }
+                                ready_zones.push(zid.clone());
                             }
                         }
 

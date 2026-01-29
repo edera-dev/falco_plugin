@@ -176,6 +176,15 @@ impl Client {
         sender: mpsc::UnboundedSender<MonitorZoneKernelEventReply>,
         zone_exit_tx: mpsc::UnboundedSender<String>,
     ) -> Result<()> {
+        // Consistency check: should never hit this
+        if self.zone_pump_handles.contains_key(&zone_id) {
+            warn!(
+                "Pump already exists for zone {}, skipping duplicate",
+                zone_id
+            );
+            return Ok(());
+        }
+
         let (cancel_tx, cancel_rx) = watch::channel::<bool>(false);
         let done_cancel = cancel_tx.clone();
         let zone_id_local = zone_id.clone();

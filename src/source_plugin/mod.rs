@@ -45,40 +45,63 @@ impl EderaSourcePluginInstance {
         batch: &mut EventBatch,
         plugin: &mut EderaPlugin,
     ) -> Result<u32> {
-        let mut drained_count = 0;
+        let mut drained_event_count = 0;
+        let mut threadsnap_count = 0;
         if let Some(rx) = &mut self.event_rx {
-            for _ in 0..max_count {
+            // This loop processes both syscall events and new-zone thread snapshots,
+            // which are interleaved on the same channel.
+            // The zone thread snapshots are required for initializing zone event
+            // watchers, and so we want to prioritize processing those, and
+            // (naturally) avoid counting them against "max_count", since we do not
+            // include threadsnaps in the set of events we hand to falco proper.
+            loop {
                 match rx.try_recv() {
                     Ok(event) => {
                         match event.reply {
-                            // extract the internal syscall struct (if present) to
-                            // pull out the timestamp and use it as the scap event's timestamp.
-                            Some(Reply::Syscall(evt)) => {
-                                let encoded = evt.encode_length_delimited_to_vec();
-                                let mut wrapped_evt = Self::plugin_event(encoded.as_slice());
-                                // set the wrapped evt TS to the original evt ts
-                                wrapped_evt.metadata.ts = evt.timestamp;
-                                batch.add(wrapped_evt).expect("event should add");
-                                drained_count += 1;
-                            }
                             Some(Reply::Threadsnap(snap)) => {
                                 // We will silently *take* snapshot events here,
                                 // filtering them out of the plugin event stream at this point,
                                 // and populate our internal thread table with them, rather than
                                 // adding them to the batch and passing them back to `scap`.
+                                threadsnap_count += 1;
                                 debug!(
-                                    "thread snapshot: zone_id {:?} entry_count: {}",
+                                    "take_events: received thread snapshot for zone_id {:?} with {} threads, initializing zone",
                                     snap.zone_id,
                                     snap.thread_info.len(),
                                 );
                                 plugin.threadstate.init_zone_with_snap(snap);
+                            }
+                            Some(Reply::Syscall(evt)) => {
+                                // extract the internal syscall struct (if present) to
+                                // pull out the timestamp and use it as the scap event's timestamp.
+                                let encoded = evt.encode_length_delimited_to_vec();
+                                let mut wrapped_evt = Self::plugin_event(encoded.as_slice());
+                                // set the wrapped evt TS to the original evt ts
+                                wrapped_evt.metadata.ts = evt.timestamp;
+                                batch.add(wrapped_evt).expect("event should add");
+                                drained_event_count += 1;
+
+                                // If we've hit max_count, stop draining
+                                if drained_event_count >= max_count {
+                                    debug!(
+                                        "take_events: hit max_count={}, processed {} threadsnaps, {} syscalls",
+                                        max_count, threadsnap_count, drained_event_count
+                                    );
+                                    break;
+                                }
                             }
                             None => {
                                 warn!("got empty event!")
                             }
                         }
                     }
-                    Err(mpsc::error::TryRecvError::Empty) => break,
+                    Err(mpsc::error::TryRecvError::Empty) => {
+                        debug!(
+                            "take_events: channel empty after processing {} threadsnaps, {} syscalls",
+                            threadsnap_count, drained_event_count
+                        );
+                        break;
+                    }
                     Err(_) => return Err(anyhow!("channel closed")),
                 }
             }
@@ -93,7 +116,7 @@ impl EderaSourcePluginInstance {
             }
         }
 
-        Ok(drained_count)
+        Ok(drained_event_count)
     }
 }
 
