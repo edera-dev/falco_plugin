@@ -64,11 +64,7 @@ impl EderaSourcePluginInstance {
                                 // and populate our internal thread table with them, rather than
                                 // adding them to the batch and passing them back to `scap`.
                                 threadsnap_count += 1;
-                                debug!(
-                                    "take_events: received thread snapshot for zone_id {:?} with {} threads, initializing zone",
-                                    snap.zone_id,
-                                    snap.thread_info.len(),
-                                );
+                                info!("discovered and initialized zone {}", snap.zone_id,);
                                 plugin.threadstate.init_zone_with_snap(snap);
                             }
                             Some(Reply::Syscall(evt)) => {
@@ -111,7 +107,7 @@ impl EderaSourcePluginInstance {
         // we want to handle these before dealing with any subsequent events
         if let Some(zone_dead_rx) = &mut self.zone_exit_rx {
             while let Ok(term_zone_id) = zone_dead_rx.try_recv() {
-                debug!("zone {term_zone_id} is dead, dropping from threadsnap");
+                info!("stopped streaming events from zone {term_zone_id}");
                 plugin.threadstate.drop_zone_from_snap(&term_zone_id);
             }
         }

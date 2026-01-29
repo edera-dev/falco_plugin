@@ -253,7 +253,7 @@ impl Client {
         cancel_rx: watch::Receiver<bool>,
         zone_exit_tx: mpsc::UnboundedSender<String>,
     ) -> Result<JoinSet<()>> {
-        info!("Listening for kernel events from zone {}", zone_id);
+        debug!("listening for kernel events from zone {}", zone_id);
         let event = MonitorZoneKernelEventRequest {
             zone_id: zone_id.clone(),
             request: Some(zk_req::Request::Update(ZoneKernelEventStreamUpdate {
