@@ -1,0 +1,16 @@
+- macro: open_read_edera
+  condition: (evt.pluginname == "edera")
+
+- rule: Edera Events
+  desc: >
+    Logs every syscall event from every running Edera zone, with no filtering.
+    Useful for testing and understanding what events are available.
+  source: edera_zone
+  output: >
+    Edera Event | time=%evt.time zone_id=%edera.zone.id evt.type=%evt.type
+    syscall.type=%syscall.type evt.category=%evt.category evt.dir=%evt.dir
+    proc.exe=%proc.exe evt.args=%evt.args is_open=%evt.type.is[open]
+  priority: WARNING
+  tags: [edera_zone, filesystem]
+  condition: >
+    open_read_edera

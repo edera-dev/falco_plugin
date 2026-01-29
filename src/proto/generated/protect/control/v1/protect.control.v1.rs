@@ -181,6 +181,22 @@ pub struct DeviceReferenceSpec {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct WorkloadBlockDeviceSpec {
+    #[prost(string, tag="1")]
+    pub target_path: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub device_path: ::prost::alloc::string::String,
+    #[prost(message, optional, tag="3")]
+    pub mount_options: ::core::option::Option<BlockDeviceMountOptions>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct BlockDeviceMountOptions {
+    #[prost(bool, tag="1")]
+    pub readonly: bool,
+    #[prost(string, tag="2")]
+    pub permissions: ::prost::alloc::string::String,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ZoneStatus {
     #[prost(enumeration="ZoneState", tag="1")]
@@ -379,6 +395,19 @@ pub struct WorkloadSpec {
     pub security: ::core::option::Option<WorkloadSecuritySpec>,
     #[prost(message, repeated, tag="8")]
     pub scratch_mount: ::prost::alloc::vec::Vec<WorkloadScratchMount>,
+    #[prost(message, repeated, tag="9")]
+    pub cgroup_limits: ::prost::alloc::vec::Vec<CgroupLimit>,
+    #[prost(string, tag="10")]
+    pub hostname: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="11")]
+    pub block_devices: ::prost::alloc::vec::Vec<WorkloadBlockDeviceSpec>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CgroupLimit {
+    #[prost(string, tag="1")]
+    pub limit_name: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub value: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct WorkloadScratchMount {
@@ -401,6 +430,10 @@ pub struct WorkloadSecuritySpec {
     pub disable_all_namespaces: bool,
     #[prost(enumeration="ProcessNamespace", repeated, tag="7")]
     pub disable_namespaces: ::prost::alloc::vec::Vec<i32>,
+    #[prost(bool, tag="8")]
+    pub read_only_rootfs: bool,
+    #[prost(bool, tag="9")]
+    pub no_new_privs: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WorkloadStatus {
@@ -423,8 +456,10 @@ pub struct WorkloadBlockDeviceInfo {
     pub block_index: u32,
     #[prost(uint64, tag="2")]
     pub device_id: u64,
-    #[prost(string, tag="3")]
-    pub loop_device: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub device: ::prost::alloc::string::String,
+    #[prost(bool, tag="5")]
+    pub loop_dev: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WorkloadBlockDeviceStatus {
@@ -433,21 +468,17 @@ pub struct WorkloadBlockDeviceStatus {
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct WorkloadMountInfo {
-    #[prost(uint64, tag="1")]
-    pub device_id: u64,
     #[prost(string, tag="2")]
     pub tag: ::prost::alloc::string::String,
     #[prost(string, tag="3")]
-    pub host_directory: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
-    pub host_file: ::prost::alloc::string::String,
+    pub host_path: ::prost::alloc::string::String,
     #[prost(string, tag="5")]
     pub target_path: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WorkloadMountStatus {
-    #[prost(message, repeated, tag="1")]
-    pub devices: ::prost::alloc::vec::Vec<WorkloadMountInfo>,
+    #[prost(message, repeated, tag="2")]
+    pub mounts: ::prost::alloc::vec::Vec<WorkloadMountInfo>,
 }
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct WorkloadExitStatus {
@@ -586,6 +617,8 @@ pub struct ZoneScratchDiskSpecStaticBlock {
 pub struct ZoneDeviceStatus {
     #[prost(message, repeated, tag="1")]
     pub disks: ::prost::alloc::vec::Vec<ZoneDiskStatus>,
+    #[prost(message, optional, tag="2")]
+    pub mount: ::core::option::Option<ZoneMountStatus>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ZoneDiskStatus {
@@ -601,6 +634,15 @@ pub struct ZoneDiskStatus {
     pub purpose: i32,
     #[prost(bool, tag="6")]
     pub delete: bool,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ZoneMountStatus {
+    #[prost(uint64, tag="1")]
+    pub device_id: u64,
+    #[prost(string, tag="2")]
+    pub host_path: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub tag: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OciRegistryUsernamePassword {
@@ -709,6 +751,7 @@ pub enum ZoneVirtualizationBackend {
     Unknown = 0,
     Pv = 1,
     Pvh = 2,
+    Automatic = 3,
 }
 impl ZoneVirtualizationBackend {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -720,6 +763,7 @@ impl ZoneVirtualizationBackend {
             Self::Unknown => "ZONE_VIRTUALIZATION_BACKEND_UNKNOWN",
             Self::Pv => "ZONE_VIRTUALIZATION_BACKEND_PV",
             Self::Pvh => "ZONE_VIRTUALIZATION_BACKEND_PVH",
+            Self::Automatic => "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -728,6 +772,7 @@ impl ZoneVirtualizationBackend {
             "ZONE_VIRTUALIZATION_BACKEND_UNKNOWN" => Some(Self::Unknown),
             "ZONE_VIRTUALIZATION_BACKEND_PV" => Some(Self::Pv),
             "ZONE_VIRTUALIZATION_BACKEND_PVH" => Some(Self::Pvh),
+            "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC" => Some(Self::Automatic),
             _ => None,
         }
     }
@@ -927,6 +972,7 @@ pub enum WorkloadState {
     Destroying = 5,
     Destroyed = 6,
     Failed = 7,
+    Oomkilled = 8,
 }
 impl WorkloadState {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -943,6 +989,7 @@ impl WorkloadState {
             Self::Destroying => "WORKLOAD_STATE_DESTROYING",
             Self::Destroyed => "WORKLOAD_STATE_DESTROYED",
             Self::Failed => "WORKLOAD_STATE_FAILED",
+            Self::Oomkilled => "WORKLOAD_STATE_OOMKILLED",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -956,6 +1003,7 @@ impl WorkloadState {
             "WORKLOAD_STATE_DESTROYING" => Some(Self::Destroying),
             "WORKLOAD_STATE_DESTROYED" => Some(Self::Destroyed),
             "WORKLOAD_STATE_FAILED" => Some(Self::Failed),
+            "WORKLOAD_STATE_OOMKILLED" => Some(Self::Oomkilled),
             _ => None,
         }
     }
@@ -1156,6 +1204,8 @@ pub struct GetHostStatusReply {
     pub host_ipv6: ::prost::alloc::string::String,
     #[prost(string, tag="6")]
     pub host_mac: ::prost::alloc::string::String,
+    #[prost(uint64, optional, tag="7")]
+    pub hyp_free_mem: ::core::option::Option<u64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateZoneRequest {
@@ -1856,6 +1906,8 @@ pub struct StartWorkloadReply {
 pub struct StopWorkloadRequest {
     #[prost(string, tag="1")]
     pub workload_id: ::prost::alloc::string::String,
+    #[prost(uint64, tag="2")]
+    pub timeout: u64,
 }
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StopWorkloadReply {

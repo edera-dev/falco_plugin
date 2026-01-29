@@ -4,13 +4,13 @@ managed:
   enabled: true
 plugins:
   - local: protoc-gen-prost
-    out: src/proto/generated/protect/control
+    out: src/proto/generated
     opt:
       - compile_well_known_types
       - extern_path=.google.protobuf=::pbjson_types
   - local: protoc-gen-prost-serde
-    out: src/proto/generated/protect/control
+    out: src/proto/generated
   - local: protoc-gen-tonic
-    out: src/proto/generated/protect/control
+    out: src/proto/generated
 inputs:
   - module: buf.build/edera-dev/protect

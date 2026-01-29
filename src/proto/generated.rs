@@ -2,7 +2,7 @@
 #[allow(clippy::all)]
 pub mod protect {
     pub mod control {
-        #[path = "protect.control.v1.rs"]
+        #[path = "v1/protect.control.v1.rs"]
         pub mod v1;
     }
 }

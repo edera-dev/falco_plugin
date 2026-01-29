@@ -1,0 +1,23 @@
+mounts:
+  volumes:
+    - name: edera-plugin
+      hostPath:
+        path: /var/lib/edera/protect/falco
+    - name: edera-daemon-socket
+      hostPath:
+        path: /var/lib/edera/protect
+  volumeMounts:
+    - name: edera-plugin
+      mountPath: /var/lib/edera/protect/falco
+      readOnly: true
+    - name: edera-daemon-socket
+      mountPath: /var/lib/edera/protect
+      readOnly: false
+
+falco:
+  plugins:
+    - name: edera
+      library_path: /var/lib/edera/protect/falco/libedera_falco_plugin.so
+      init_config:
+        mirror_host_syscalls: true
+  load_plugins: [edera]
