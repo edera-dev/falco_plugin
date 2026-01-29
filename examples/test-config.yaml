@@ -1,0 +1,11 @@
+plugins:
+  - name: edera
+    library_path: /var/lib/edera/protect/falco/libedera_falco_plugin.so
+    init_config:
+      mirror_host_syscalls: false
+load_plugins: [edera]
+stdout_output:
+  enabled: true
+engine:
+  kind: nodriver
+log_stderr: true
