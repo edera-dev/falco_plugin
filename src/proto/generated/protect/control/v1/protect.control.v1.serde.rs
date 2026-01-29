@@ -107,6 +107,223 @@ impl<'de> serde::Deserialize<'de> for AnnotationSpec {
         deserializer.deserialize_struct("protect.control.v1.AnnotationSpec", FIELDS, GeneratedVisitor)
     }
 }
+impl serde::Serialize for BlockDeviceMountOptions {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.readonly {
+            len += 1;
+        }
+        if !self.permissions.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("protect.control.v1.BlockDeviceMountOptions", len)?;
+        if self.readonly {
+            struct_ser.serialize_field("readonly", &self.readonly)?;
+        }
+        if !self.permissions.is_empty() {
+            struct_ser.serialize_field("permissions", &self.permissions)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for BlockDeviceMountOptions {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "readonly",
+            "permissions",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Readonly,
+            Permissions,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "readonly" => Ok(GeneratedField::Readonly),
+                            "permissions" => Ok(GeneratedField::Permissions),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = BlockDeviceMountOptions;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct protect.control.v1.BlockDeviceMountOptions")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<BlockDeviceMountOptions, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut readonly__ = None;
+                let mut permissions__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Readonly => {
+                            if readonly__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("readonly"));
+                            }
+                            readonly__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Permissions => {
+                            if permissions__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("permissions"));
+                            }
+                            permissions__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(BlockDeviceMountOptions {
+                    readonly: readonly__.unwrap_or_default(),
+                    permissions: permissions__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("protect.control.v1.BlockDeviceMountOptions", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for CgroupLimit {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.limit_name.is_empty() {
+            len += 1;
+        }
+        if !self.value.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("protect.control.v1.CgroupLimit", len)?;
+        if !self.limit_name.is_empty() {
+            struct_ser.serialize_field("limitName", &self.limit_name)?;
+        }
+        if !self.value.is_empty() {
+            struct_ser.serialize_field("value", &self.value)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for CgroupLimit {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "limit_name",
+            "limitName",
+            "value",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            LimitName,
+            Value,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "limitName" | "limit_name" => Ok(GeneratedField::LimitName),
+                            "value" => Ok(GeneratedField::Value),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = CgroupLimit;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct protect.control.v1.CgroupLimit")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<CgroupLimit, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut limit_name__ = None;
+                let mut value__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::LimitName => {
+                            if limit_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("limitName"));
+                            }
+                            limit_name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Value => {
+                            if value__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("value"));
+                            }
+                            value__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(CgroupLimit {
+                    limit_name: limit_name__.unwrap_or_default(),
+                    value: value__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("protect.control.v1.CgroupLimit", FIELDS, GeneratedVisitor)
+    }
+}
 impl serde::Serialize for ConfigureZoneNetworkReply {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
@@ -3012,6 +3229,9 @@ impl serde::Serialize for GetHostStatusReply {
         if !self.host_mac.is_empty() {
             len += 1;
         }
+        if self.hyp_free_mem.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.GetHostStatusReply", len)?;
         if !self.host_uuid.is_empty() {
             struct_ser.serialize_field("hostUuid", &self.host_uuid)?;
@@ -3030,6 +3250,11 @@ impl serde::Serialize for GetHostStatusReply {
         }
         if !self.host_mac.is_empty() {
             struct_ser.serialize_field("hostMac", &self.host_mac)?;
+        }
+        if let Some(v) = self.hyp_free_mem.as_ref() {
+            #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
+            struct_ser.serialize_field("hypFreeMem", ToString::to_string(&v).as_str())?;
         }
         struct_ser.end()
     }
@@ -3053,6 +3278,8 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
             "hostIpv6",
             "host_mac",
             "hostMac",
+            "hyp_free_mem",
+            "hypFreeMem",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -3063,6 +3290,7 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
             HostIpv4,
             HostIpv6,
             HostMac,
+            HypFreeMem,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -3090,6 +3318,7 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
                             "hostIpv4" | "host_ipv4" => Ok(GeneratedField::HostIpv4),
                             "hostIpv6" | "host_ipv6" => Ok(GeneratedField::HostIpv6),
                             "hostMac" | "host_mac" => Ok(GeneratedField::HostMac),
+                            "hypFreeMem" | "hyp_free_mem" => Ok(GeneratedField::HypFreeMem),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -3115,6 +3344,7 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
                 let mut host_ipv4__ = None;
                 let mut host_ipv6__ = None;
                 let mut host_mac__ = None;
+                let mut hyp_free_mem__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::HostUuid => {
@@ -3155,6 +3385,14 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
                             }
                             host_mac__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::HypFreeMem => {
+                            if hyp_free_mem__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("hypFreeMem"));
+                            }
+                            hyp_free_mem__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
                     }
                 }
                 Ok(GetHostStatusReply {
@@ -3164,6 +3402,7 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
                     host_ipv4: host_ipv4__.unwrap_or_default(),
                     host_ipv6: host_ipv6__.unwrap_or_default(),
                     host_mac: host_mac__.unwrap_or_default(),
+                    hyp_free_mem: hyp_free_mem__,
                 })
             }
         }
@@ -10790,9 +11029,17 @@ impl serde::Serialize for StopWorkloadRequest {
         if !self.workload_id.is_empty() {
             len += 1;
         }
+        if self.timeout != 0 {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.StopWorkloadRequest", len)?;
         if !self.workload_id.is_empty() {
             struct_ser.serialize_field("workloadId", &self.workload_id)?;
+        }
+        if self.timeout != 0 {
+            #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
+            struct_ser.serialize_field("timeout", ToString::to_string(&self.timeout).as_str())?;
         }
         struct_ser.end()
     }
@@ -10806,11 +11053,13 @@ impl<'de> serde::Deserialize<'de> for StopWorkloadRequest {
         const FIELDS: &[&str] = &[
             "workload_id",
             "workloadId",
+            "timeout",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             WorkloadId,
+            Timeout,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -10833,6 +11082,7 @@ impl<'de> serde::Deserialize<'de> for StopWorkloadRequest {
                     {
                         match value {
                             "workloadId" | "workload_id" => Ok(GeneratedField::WorkloadId),
+                            "timeout" => Ok(GeneratedField::Timeout),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -10853,6 +11103,7 @@ impl<'de> serde::Deserialize<'de> for StopWorkloadRequest {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut workload_id__ = None;
+                let mut timeout__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::WorkloadId => {
@@ -10861,10 +11112,19 @@ impl<'de> serde::Deserialize<'de> for StopWorkloadRequest {
                             }
                             workload_id__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::Timeout => {
+                            if timeout__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("timeout"));
+                            }
+                            timeout__ = 
+                                Some(map_.next_value::<::pbjson::private::NumberDeserialize<_>>()?.0)
+                            ;
+                        }
                     }
                 }
                 Ok(StopWorkloadRequest {
                     workload_id: workload_id__.unwrap_or_default(),
+                    timeout: timeout__.unwrap_or_default(),
                 })
             }
         }
@@ -11484,7 +11744,10 @@ impl serde::Serialize for WorkloadBlockDeviceInfo {
         if self.device_id != 0 {
             len += 1;
         }
-        if !self.loop_device.is_empty() {
+        if !self.device.is_empty() {
+            len += 1;
+        }
+        if self.loop_dev {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadBlockDeviceInfo", len)?;
@@ -11496,8 +11759,11 @@ impl serde::Serialize for WorkloadBlockDeviceInfo {
             #[allow(clippy::needless_borrows_for_generic_args)]
             struct_ser.serialize_field("deviceId", ToString::to_string(&self.device_id).as_str())?;
         }
-        if !self.loop_device.is_empty() {
-            struct_ser.serialize_field("loopDevice", &self.loop_device)?;
+        if !self.device.is_empty() {
+            struct_ser.serialize_field("device", &self.device)?;
+        }
+        if self.loop_dev {
+            struct_ser.serialize_field("loopDev", &self.loop_dev)?;
         }
         struct_ser.end()
     }
@@ -11513,15 +11779,17 @@ impl<'de> serde::Deserialize<'de> for WorkloadBlockDeviceInfo {
             "blockIndex",
             "device_id",
             "deviceId",
-            "loop_device",
-            "loopDevice",
+            "device",
+            "loop_dev",
+            "loopDev",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             BlockIndex,
             DeviceId,
-            LoopDevice,
+            Device,
+            LoopDev,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -11545,7 +11813,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadBlockDeviceInfo {
                         match value {
                             "blockIndex" | "block_index" => Ok(GeneratedField::BlockIndex),
                             "deviceId" | "device_id" => Ok(GeneratedField::DeviceId),
-                            "loopDevice" | "loop_device" => Ok(GeneratedField::LoopDevice),
+                            "device" => Ok(GeneratedField::Device),
+                            "loopDev" | "loop_dev" => Ok(GeneratedField::LoopDev),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -11567,7 +11836,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadBlockDeviceInfo {
             {
                 let mut block_index__ = None;
                 let mut device_id__ = None;
-                let mut loop_device__ = None;
+                let mut device__ = None;
+                let mut loop_dev__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::BlockIndex => {
@@ -11586,22 +11856,157 @@ impl<'de> serde::Deserialize<'de> for WorkloadBlockDeviceInfo {
                                 Some(map_.next_value::<::pbjson::private::NumberDeserialize<_>>()?.0)
                             ;
                         }
-                        GeneratedField::LoopDevice => {
-                            if loop_device__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("loopDevice"));
+                        GeneratedField::Device => {
+                            if device__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("device"));
                             }
-                            loop_device__ = Some(map_.next_value()?);
+                            device__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::LoopDev => {
+                            if loop_dev__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("loopDev"));
+                            }
+                            loop_dev__ = Some(map_.next_value()?);
                         }
                     }
                 }
                 Ok(WorkloadBlockDeviceInfo {
                     block_index: block_index__.unwrap_or_default(),
                     device_id: device_id__.unwrap_or_default(),
-                    loop_device: loop_device__.unwrap_or_default(),
+                    device: device__.unwrap_or_default(),
+                    loop_dev: loop_dev__.unwrap_or_default(),
                 })
             }
         }
         deserializer.deserialize_struct("protect.control.v1.WorkloadBlockDeviceInfo", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for WorkloadBlockDeviceSpec {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.target_path.is_empty() {
+            len += 1;
+        }
+        if !self.device_path.is_empty() {
+            len += 1;
+        }
+        if self.mount_options.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadBlockDeviceSpec", len)?;
+        if !self.target_path.is_empty() {
+            struct_ser.serialize_field("targetPath", &self.target_path)?;
+        }
+        if !self.device_path.is_empty() {
+            struct_ser.serialize_field("devicePath", &self.device_path)?;
+        }
+        if let Some(v) = self.mount_options.as_ref() {
+            struct_ser.serialize_field("mountOptions", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for WorkloadBlockDeviceSpec {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "target_path",
+            "targetPath",
+            "device_path",
+            "devicePath",
+            "mount_options",
+            "mountOptions",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            TargetPath,
+            DevicePath,
+            MountOptions,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "targetPath" | "target_path" => Ok(GeneratedField::TargetPath),
+                            "devicePath" | "device_path" => Ok(GeneratedField::DevicePath),
+                            "mountOptions" | "mount_options" => Ok(GeneratedField::MountOptions),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = WorkloadBlockDeviceSpec;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct protect.control.v1.WorkloadBlockDeviceSpec")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<WorkloadBlockDeviceSpec, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut target_path__ = None;
+                let mut device_path__ = None;
+                let mut mount_options__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::TargetPath => {
+                            if target_path__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("targetPath"));
+                            }
+                            target_path__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::DevicePath => {
+                            if device_path__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("devicePath"));
+                            }
+                            device_path__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::MountOptions => {
+                            if mount_options__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("mountOptions"));
+                            }
+                            mount_options__ = map_.next_value()?;
+                        }
+                    }
+                }
+                Ok(WorkloadBlockDeviceSpec {
+                    target_path: target_path__.unwrap_or_default(),
+                    device_path: device_path__.unwrap_or_default(),
+                    mount_options: mount_options__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("protect.control.v1.WorkloadBlockDeviceSpec", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for WorkloadBlockDeviceStatus {
@@ -12243,35 +12648,21 @@ impl serde::Serialize for WorkloadMountInfo {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.device_id != 0 {
-            len += 1;
-        }
         if !self.tag.is_empty() {
             len += 1;
         }
-        if !self.host_directory.is_empty() {
-            len += 1;
-        }
-        if !self.host_file.is_empty() {
+        if !self.host_path.is_empty() {
             len += 1;
         }
         if !self.target_path.is_empty() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadMountInfo", len)?;
-        if self.device_id != 0 {
-            #[allow(clippy::needless_borrow)]
-            #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("deviceId", ToString::to_string(&self.device_id).as_str())?;
-        }
         if !self.tag.is_empty() {
             struct_ser.serialize_field("tag", &self.tag)?;
         }
-        if !self.host_directory.is_empty() {
-            struct_ser.serialize_field("hostDirectory", &self.host_directory)?;
-        }
-        if !self.host_file.is_empty() {
-            struct_ser.serialize_field("hostFile", &self.host_file)?;
+        if !self.host_path.is_empty() {
+            struct_ser.serialize_field("hostPath", &self.host_path)?;
         }
         if !self.target_path.is_empty() {
             struct_ser.serialize_field("targetPath", &self.target_path)?;
@@ -12286,23 +12677,17 @@ impl<'de> serde::Deserialize<'de> for WorkloadMountInfo {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "device_id",
-            "deviceId",
             "tag",
-            "host_directory",
-            "hostDirectory",
-            "host_file",
-            "hostFile",
+            "host_path",
+            "hostPath",
             "target_path",
             "targetPath",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            DeviceId,
             Tag,
-            HostDirectory,
-            HostFile,
+            HostPath,
             TargetPath,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -12325,10 +12710,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadMountInfo {
                         E: serde::de::Error,
                     {
                         match value {
-                            "deviceId" | "device_id" => Ok(GeneratedField::DeviceId),
                             "tag" => Ok(GeneratedField::Tag),
-                            "hostDirectory" | "host_directory" => Ok(GeneratedField::HostDirectory),
-                            "hostFile" | "host_file" => Ok(GeneratedField::HostFile),
+                            "hostPath" | "host_path" => Ok(GeneratedField::HostPath),
                             "targetPath" | "target_path" => Ok(GeneratedField::TargetPath),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
@@ -12349,38 +12732,22 @@ impl<'de> serde::Deserialize<'de> for WorkloadMountInfo {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut device_id__ = None;
                 let mut tag__ = None;
-                let mut host_directory__ = None;
-                let mut host_file__ = None;
+                let mut host_path__ = None;
                 let mut target_path__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::DeviceId => {
-                            if device_id__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("deviceId"));
-                            }
-                            device_id__ = 
-                                Some(map_.next_value::<::pbjson::private::NumberDeserialize<_>>()?.0)
-                            ;
-                        }
                         GeneratedField::Tag => {
                             if tag__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("tag"));
                             }
                             tag__ = Some(map_.next_value()?);
                         }
-                        GeneratedField::HostDirectory => {
-                            if host_directory__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("hostDirectory"));
+                        GeneratedField::HostPath => {
+                            if host_path__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("hostPath"));
                             }
-                            host_directory__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::HostFile => {
-                            if host_file__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("hostFile"));
-                            }
-                            host_file__ = Some(map_.next_value()?);
+                            host_path__ = Some(map_.next_value()?);
                         }
                         GeneratedField::TargetPath => {
                             if target_path__.is_some() {
@@ -12391,10 +12758,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadMountInfo {
                     }
                 }
                 Ok(WorkloadMountInfo {
-                    device_id: device_id__.unwrap_or_default(),
                     tag: tag__.unwrap_or_default(),
-                    host_directory: host_directory__.unwrap_or_default(),
-                    host_file: host_file__.unwrap_or_default(),
+                    host_path: host_path__.unwrap_or_default(),
                     target_path: target_path__.unwrap_or_default(),
                 })
             }
@@ -12410,12 +12775,12 @@ impl serde::Serialize for WorkloadMountStatus {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.devices.is_empty() {
+        if !self.mounts.is_empty() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadMountStatus", len)?;
-        if !self.devices.is_empty() {
-            struct_ser.serialize_field("devices", &self.devices)?;
+        if !self.mounts.is_empty() {
+            struct_ser.serialize_field("mounts", &self.mounts)?;
         }
         struct_ser.end()
     }
@@ -12427,12 +12792,12 @@ impl<'de> serde::Deserialize<'de> for WorkloadMountStatus {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "devices",
+            "mounts",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Devices,
+            Mounts,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -12454,7 +12819,7 @@ impl<'de> serde::Deserialize<'de> for WorkloadMountStatus {
                         E: serde::de::Error,
                     {
                         match value {
-                            "devices" => Ok(GeneratedField::Devices),
+                            "mounts" => Ok(GeneratedField::Mounts),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -12474,19 +12839,19 @@ impl<'de> serde::Deserialize<'de> for WorkloadMountStatus {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut devices__ = None;
+                let mut mounts__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Devices => {
-                            if devices__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("devices"));
+                        GeneratedField::Mounts => {
+                            if mounts__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("mounts"));
                             }
-                            devices__ = Some(map_.next_value()?);
+                            mounts__ = Some(map_.next_value()?);
                         }
                     }
                 }
                 Ok(WorkloadMountStatus {
-                    devices: devices__.unwrap_or_default(),
+                    mounts: mounts__.unwrap_or_default(),
                 })
             }
         }
@@ -12613,6 +12978,12 @@ impl serde::Serialize for WorkloadSecuritySpec {
         if !self.disable_namespaces.is_empty() {
             len += 1;
         }
+        if self.read_only_rootfs {
+            len += 1;
+        }
+        if self.no_new_privs {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadSecuritySpec", len)?;
         if self.strict_user_namespace {
             struct_ser.serialize_field("strictUserNamespace", &self.strict_user_namespace)?;
@@ -12639,6 +13010,12 @@ impl serde::Serialize for WorkloadSecuritySpec {
                 }).collect::<std::result::Result<Vec<_>, _>>()?;
             struct_ser.serialize_field("disableNamespaces", &v)?;
         }
+        if self.read_only_rootfs {
+            struct_ser.serialize_field("readOnlyRootfs", &self.read_only_rootfs)?;
+        }
+        if self.no_new_privs {
+            struct_ser.serialize_field("noNewPrivs", &self.no_new_privs)?;
+        }
         struct_ser.end()
     }
 }
@@ -12662,6 +13039,10 @@ impl<'de> serde::Deserialize<'de> for WorkloadSecuritySpec {
             "disableAllNamespaces",
             "disable_namespaces",
             "disableNamespaces",
+            "read_only_rootfs",
+            "readOnlyRootfs",
+            "no_new_privs",
+            "noNewPrivs",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -12673,6 +13054,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadSecuritySpec {
             Privileged,
             DisableAllNamespaces,
             DisableNamespaces,
+            ReadOnlyRootfs,
+            NoNewPrivs,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -12701,6 +13084,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadSecuritySpec {
                             "privileged" => Ok(GeneratedField::Privileged),
                             "disableAllNamespaces" | "disable_all_namespaces" => Ok(GeneratedField::DisableAllNamespaces),
                             "disableNamespaces" | "disable_namespaces" => Ok(GeneratedField::DisableNamespaces),
+                            "readOnlyRootfs" | "read_only_rootfs" => Ok(GeneratedField::ReadOnlyRootfs),
+                            "noNewPrivs" | "no_new_privs" => Ok(GeneratedField::NoNewPrivs),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -12727,6 +13112,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadSecuritySpec {
                 let mut privileged__ = None;
                 let mut disable_all_namespaces__ = None;
                 let mut disable_namespaces__ = None;
+                let mut read_only_rootfs__ = None;
+                let mut no_new_privs__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::StrictUserNamespace => {
@@ -12771,6 +13158,18 @@ impl<'de> serde::Deserialize<'de> for WorkloadSecuritySpec {
                             }
                             disable_namespaces__ = Some(map_.next_value::<Vec<ProcessNamespace>>()?.into_iter().map(|x| x as i32).collect());
                         }
+                        GeneratedField::ReadOnlyRootfs => {
+                            if read_only_rootfs__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("readOnlyRootfs"));
+                            }
+                            read_only_rootfs__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::NoNewPrivs => {
+                            if no_new_privs__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("noNewPrivs"));
+                            }
+                            no_new_privs__ = Some(map_.next_value()?);
+                        }
                     }
                 }
                 Ok(WorkloadSecuritySpec {
@@ -12781,6 +13180,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadSecuritySpec {
                     privileged: privileged__.unwrap_or_default(),
                     disable_all_namespaces: disable_all_namespaces__.unwrap_or_default(),
                     disable_namespaces: disable_namespaces__.unwrap_or_default(),
+                    read_only_rootfs: read_only_rootfs__.unwrap_or_default(),
+                    no_new_privs: no_new_privs__.unwrap_or_default(),
                 })
             }
         }
@@ -12819,6 +13220,15 @@ impl serde::Serialize for WorkloadSpec {
         if !self.scratch_mount.is_empty() {
             len += 1;
         }
+        if !self.cgroup_limits.is_empty() {
+            len += 1;
+        }
+        if !self.hostname.is_empty() {
+            len += 1;
+        }
+        if !self.block_devices.is_empty() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadSpec", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
@@ -12844,6 +13254,15 @@ impl serde::Serialize for WorkloadSpec {
         if !self.scratch_mount.is_empty() {
             struct_ser.serialize_field("scratchMount", &self.scratch_mount)?;
         }
+        if !self.cgroup_limits.is_empty() {
+            struct_ser.serialize_field("cgroupLimits", &self.cgroup_limits)?;
+        }
+        if !self.hostname.is_empty() {
+            struct_ser.serialize_field("hostname", &self.hostname)?;
+        }
+        if !self.block_devices.is_empty() {
+            struct_ser.serialize_field("blockDevices", &self.block_devices)?;
+        }
         struct_ser.end()
     }
 }
@@ -12864,6 +13283,11 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
             "security",
             "scratch_mount",
             "scratchMount",
+            "cgroup_limits",
+            "cgroupLimits",
+            "hostname",
+            "block_devices",
+            "blockDevices",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -12876,6 +13300,9 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
             Mounts,
             Security,
             ScratchMount,
+            CgroupLimits,
+            Hostname,
+            BlockDevices,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -12905,6 +13332,9 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
                             "mounts" => Ok(GeneratedField::Mounts),
                             "security" => Ok(GeneratedField::Security),
                             "scratchMount" | "scratch_mount" => Ok(GeneratedField::ScratchMount),
+                            "cgroupLimits" | "cgroup_limits" => Ok(GeneratedField::CgroupLimits),
+                            "hostname" => Ok(GeneratedField::Hostname),
+                            "blockDevices" | "block_devices" => Ok(GeneratedField::BlockDevices),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -12932,6 +13362,9 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
                 let mut mounts__ = None;
                 let mut security__ = None;
                 let mut scratch_mount__ = None;
+                let mut cgroup_limits__ = None;
+                let mut hostname__ = None;
+                let mut block_devices__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -12982,6 +13415,24 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
                             }
                             scratch_mount__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::CgroupLimits => {
+                            if cgroup_limits__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("cgroupLimits"));
+                            }
+                            cgroup_limits__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Hostname => {
+                            if hostname__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("hostname"));
+                            }
+                            hostname__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::BlockDevices => {
+                            if block_devices__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("blockDevices"));
+                            }
+                            block_devices__ = Some(map_.next_value()?);
+                        }
                     }
                 }
                 Ok(WorkloadSpec {
@@ -12993,6 +13444,9 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
                     mounts: mounts__.unwrap_or_default(),
                     security: security__,
                     scratch_mount: scratch_mount__.unwrap_or_default(),
+                    cgroup_limits: cgroup_limits__.unwrap_or_default(),
+                    hostname: hostname__.unwrap_or_default(),
+                    block_devices: block_devices__.unwrap_or_default(),
                 })
             }
         }
@@ -13014,6 +13468,7 @@ impl serde::Serialize for WorkloadState {
             Self::Destroying => "WORKLOAD_STATE_DESTROYING",
             Self::Destroyed => "WORKLOAD_STATE_DESTROYED",
             Self::Failed => "WORKLOAD_STATE_FAILED",
+            Self::Oomkilled => "WORKLOAD_STATE_OOMKILLED",
         };
         serializer.serialize_str(variant)
     }
@@ -13033,6 +13488,7 @@ impl<'de> serde::Deserialize<'de> for WorkloadState {
             "WORKLOAD_STATE_DESTROYING",
             "WORKLOAD_STATE_DESTROYED",
             "WORKLOAD_STATE_FAILED",
+            "WORKLOAD_STATE_OOMKILLED",
         ];
 
         struct GeneratedVisitor;
@@ -13081,6 +13537,7 @@ impl<'de> serde::Deserialize<'de> for WorkloadState {
                     "WORKLOAD_STATE_DESTROYING" => Ok(WorkloadState::Destroying),
                     "WORKLOAD_STATE_DESTROYED" => Ok(WorkloadState::Destroyed),
                     "WORKLOAD_STATE_FAILED" => Ok(WorkloadState::Failed),
+                    "WORKLOAD_STATE_OOMKILLED" => Ok(WorkloadState::Oomkilled),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
             }
@@ -13724,9 +14181,15 @@ impl serde::Serialize for ZoneDeviceStatus {
         if !self.disks.is_empty() {
             len += 1;
         }
+        if self.mount.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.ZoneDeviceStatus", len)?;
         if !self.disks.is_empty() {
             struct_ser.serialize_field("disks", &self.disks)?;
+        }
+        if let Some(v) = self.mount.as_ref() {
+            struct_ser.serialize_field("mount", v)?;
         }
         struct_ser.end()
     }
@@ -13739,11 +14202,13 @@ impl<'de> serde::Deserialize<'de> for ZoneDeviceStatus {
     {
         const FIELDS: &[&str] = &[
             "disks",
+            "mount",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Disks,
+            Mount,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -13766,6 +14231,7 @@ impl<'de> serde::Deserialize<'de> for ZoneDeviceStatus {
                     {
                         match value {
                             "disks" => Ok(GeneratedField::Disks),
+                            "mount" => Ok(GeneratedField::Mount),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -13786,6 +14252,7 @@ impl<'de> serde::Deserialize<'de> for ZoneDeviceStatus {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut disks__ = None;
+                let mut mount__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Disks => {
@@ -13794,10 +14261,17 @@ impl<'de> serde::Deserialize<'de> for ZoneDeviceStatus {
                             }
                             disks__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::Mount => {
+                            if mount__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("mount"));
+                            }
+                            mount__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(ZoneDeviceStatus {
                     disks: disks__.unwrap_or_default(),
+                    mount: mount__,
                 })
             }
         }
@@ -17525,6 +17999,137 @@ impl<'de> serde::Deserialize<'de> for ZoneKernelUnixSocketInfo {
         deserializer.deserialize_struct("protect.control.v1.ZoneKernelUnixSocketInfo", FIELDS, GeneratedVisitor)
     }
 }
+impl serde::Serialize for ZoneMountStatus {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.device_id != 0 {
+            len += 1;
+        }
+        if !self.host_path.is_empty() {
+            len += 1;
+        }
+        if !self.tag.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("protect.control.v1.ZoneMountStatus", len)?;
+        if self.device_id != 0 {
+            #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
+            struct_ser.serialize_field("deviceId", ToString::to_string(&self.device_id).as_str())?;
+        }
+        if !self.host_path.is_empty() {
+            struct_ser.serialize_field("hostPath", &self.host_path)?;
+        }
+        if !self.tag.is_empty() {
+            struct_ser.serialize_field("tag", &self.tag)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ZoneMountStatus {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "device_id",
+            "deviceId",
+            "host_path",
+            "hostPath",
+            "tag",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            DeviceId,
+            HostPath,
+            Tag,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "deviceId" | "device_id" => Ok(GeneratedField::DeviceId),
+                            "hostPath" | "host_path" => Ok(GeneratedField::HostPath),
+                            "tag" => Ok(GeneratedField::Tag),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ZoneMountStatus;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct protect.control.v1.ZoneMountStatus")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ZoneMountStatus, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut device_id__ = None;
+                let mut host_path__ = None;
+                let mut tag__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::DeviceId => {
+                            if device_id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("deviceId"));
+                            }
+                            device_id__ = 
+                                Some(map_.next_value::<::pbjson::private::NumberDeserialize<_>>()?.0)
+                            ;
+                        }
+                        GeneratedField::HostPath => {
+                            if host_path__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("hostPath"));
+                            }
+                            host_path__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Tag => {
+                            if tag__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("tag"));
+                            }
+                            tag__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(ZoneMountStatus {
+                    device_id: device_id__.unwrap_or_default(),
+                    host_path: host_path__.unwrap_or_default(),
+                    tag: tag__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("protect.control.v1.ZoneMountStatus", FIELDS, GeneratedVisitor)
+    }
+}
 impl serde::Serialize for ZoneNetworkBackend {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
@@ -20469,6 +21074,7 @@ impl serde::Serialize for ZoneVirtualizationBackend {
             Self::Unknown => "ZONE_VIRTUALIZATION_BACKEND_UNKNOWN",
             Self::Pv => "ZONE_VIRTUALIZATION_BACKEND_PV",
             Self::Pvh => "ZONE_VIRTUALIZATION_BACKEND_PVH",
+            Self::Automatic => "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC",
         };
         serializer.serialize_str(variant)
     }
@@ -20483,6 +21089,7 @@ impl<'de> serde::Deserialize<'de> for ZoneVirtualizationBackend {
             "ZONE_VIRTUALIZATION_BACKEND_UNKNOWN",
             "ZONE_VIRTUALIZATION_BACKEND_PV",
             "ZONE_VIRTUALIZATION_BACKEND_PVH",
+            "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC",
         ];
 
         struct GeneratedVisitor;
@@ -20526,6 +21133,7 @@ impl<'de> serde::Deserialize<'de> for ZoneVirtualizationBackend {
                     "ZONE_VIRTUALIZATION_BACKEND_UNKNOWN" => Ok(ZoneVirtualizationBackend::Unknown),
                     "ZONE_VIRTUALIZATION_BACKEND_PV" => Ok(ZoneVirtualizationBackend::Pv),
                     "ZONE_VIRTUALIZATION_BACKEND_PVH" => Ok(ZoneVirtualizationBackend::Pvh),
+                    "ZONE_VIRTUALIZATION_BACKEND_AUTOMATIC" => Ok(ZoneVirtualizationBackend::Automatic),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
             }
