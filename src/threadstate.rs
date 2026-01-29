@@ -3374,7 +3374,7 @@ impl ThreadState {
             .expect("should parse");
 
         let Some(zinfo) = self.zone_info.get_mut(&event.zone_id) else {
-            warn!("ignoring event for unknown zone {:?}", &event.zone_id);
+            debug!("ignoring event for unmonitored zone {:?}", &event.zone_id);
             return Ok(());
         };
 
