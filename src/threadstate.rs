@@ -2867,7 +2867,7 @@ impl ZoneInfo {
                         .and_then(|i| i.try_into().ok())
                 }
             } else {
-                warn!("no fd found for enter event: {:?}", event);
+                debug!("no fd found for enter event: {:?}", event);
                 None
             }
         })
