@@ -52,7 +52,7 @@ hyper-util = "0.1.19"
 libc = "0.2.180"
 libscap-bindings = { version = "0.0.3", default-features = false }
 log = "0.4.29"
-nix = { version = "0.31.0", features = ["signal"] }
+nix = { version = "0.31.1", features = ["signal"] }
 pin-project-lite = "0.2.16"
 prost = "0.14.3"
 strum_macros = "0.27"
