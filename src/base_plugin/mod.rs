@@ -156,85 +156,32 @@ impl EderaPlugin {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| Ok(zone_evt.cpuid as u64))
     }
 
-    pub fn extract_latency(&mut self, mut req: ExtractRequest<Self>) -> Result<u64> {
-        let ctx = self.get_or_cache_evt_ctx(&mut req);
-
-        let enter_ts = self
-            .threadstate
-            .with_zoneinfo(&ctx.decoded_evt.zone_id, |zinfo| {
-                zinfo
-                    .get_enter_event(&ctx.decoded_evt)
-                    .map(|enter_evt| enter_evt.timestamp)
-            });
-        let Some(enter_t) = enter_ts else {
-            return Ok(0);
-        };
-
-        Ok(ctx.decoded_evt.timestamp - enter_t)
+    // Latency fields are deprecated in Falco 0.43+ because modern_bpf only captures
+    // exit events. Like libsinsp, we hardcode to 0 to avoid breaking changes.
+    // See: libs/userspace/libsinsp/sinsp_filtercheck_event.cpp lines 859-867
+    pub fn extract_latency(&mut self, _req: ExtractRequest<Self>) -> Result<u64> {
+        Ok(0)
     }
 
-    pub fn extract_latency_s(&mut self, mut req: ExtractRequest<Self>) -> Result<u64> {
-        let ctx = self.get_or_cache_evt_ctx(&mut req);
-
-        let enter_ts = self
-            .threadstate
-            .with_zoneinfo(&ctx.decoded_evt.zone_id, |zinfo| {
-                zinfo
-                    .get_enter_event(&ctx.decoded_evt)
-                    .map(|enter_evt| enter_evt.timestamp)
-            });
-        let Some(enter_t) = enter_ts else {
-            return Ok(0);
-        };
-
-        Ok(ctx.decoded_evt.timestamp - enter_t / 1_000_000_000)
+    // Latency fields are deprecated in Falco 0.43+ because modern_bpf only captures
+    // exit events. Like libsinsp, we hardcode to 0 to avoid breaking changes.
+    // See: libs/userspace/libsinsp/sinsp_filtercheck_event.cpp lines 859-867
+    pub fn extract_latency_s(&mut self, _req: ExtractRequest<Self>) -> Result<u64> {
+        Ok(0)
     }
 
-    pub fn extract_latency_ns(&mut self, mut req: ExtractRequest<Self>) -> Result<u64> {
-        let ctx = self.get_or_cache_evt_ctx(&mut req);
-
-        let enter_ts = self
-            .threadstate
-            .with_zoneinfo(&ctx.decoded_evt.zone_id, |zinfo| {
-                zinfo
-                    .get_enter_event(&ctx.decoded_evt)
-                    .map(|enter_evt| enter_evt.timestamp)
-            });
-        let Some(enter_t) = enter_ts else {
-            return Ok(0);
-        };
-
-        Ok(ctx.decoded_evt.timestamp - enter_t % 1_000_000_000)
+    // Latency fields are deprecated in Falco 0.43+ because modern_bpf only captures
+    // exit events. Like libsinsp, we hardcode to 0 to avoid breaking changes.
+    // See: libs/userspace/libsinsp/sinsp_filtercheck_event.cpp lines 859-867
+    pub fn extract_latency_ns(&mut self, _req: ExtractRequest<Self>) -> Result<u64> {
+        Ok(0)
     }
 
-    pub fn extract_latency_human(&mut self, mut req: ExtractRequest<Self>) -> Result<CString> {
-        let ctx = self.get_or_cache_evt_ctx(&mut req);
-
-        let enter_ts = self
-            .threadstate
-            .with_zoneinfo(&ctx.decoded_evt.zone_id, |zinfo| {
-                zinfo
-                    .get_enter_event(&ctx.decoded_evt)
-                    .map(|enter_evt| enter_evt.timestamp)
-            });
-
-        let Some(enter_t) = enter_ts else {
-            return Ok(CString::new("0s")?);
-        };
-
-        let latency_ns = ctx.decoded_evt.timestamp - enter_t;
-
-        let formatted = if latency_ns < 1_000 {
-            format!("{}ns", latency_ns)
-        } else if latency_ns < 1_000_000 {
-            format!("{:.1}us", latency_ns as f64 / 1_000.0)
-        } else if latency_ns < 1_000_000_000 {
-            format!("{:.1}ms", latency_ns as f64 / 1_000_000.0)
-        } else {
-            format!("{:.1}s", latency_ns as f64 / 1_000_000_000.0)
-        };
-
-        Ok(CString::new(formatted)?)
+    // Latency fields are deprecated in Falco 0.43+ because modern_bpf only captures
+    // exit events. Like libsinsp, we hardcode to "0ns" to avoid breaking changes.
+    // See: libs/userspace/libsinsp/sinsp_filtercheck_event.cpp lines 869-874
+    pub fn extract_latency_human(&mut self, _req: ExtractRequest<Self>) -> Result<CString> {
+        Ok(CString::new("0ns")?)
     }
 
     pub fn extract_args(&mut self, mut req: ExtractRequest<Self>) -> Result<CString> {
@@ -598,9 +545,10 @@ impl EderaPlugin {
 
         let zid = &context.decoded_evt.zone_id;
         if matches!(context.fdinfo, Cached::NotFetched) {
-            context.fdinfo = match self.threadstate.with_zoneinfo(zid, |zinfo| {
-                zinfo.get_enterexit_event_fdinfo(&context.decoded_evt)
-            }) {
+            context.fdinfo = match self
+                .threadstate
+                .with_zoneinfo(zid, |zinfo| zinfo.get_event_fdinfo(&context.decoded_evt))
+            {
                 Some(t) => Cached::Found(t),
                 None => Cached::NotFound,
             };
@@ -2836,33 +2784,19 @@ impl EderaPlugin {
     }
 
     fn get_fs_path_nameraw(&mut self, event: &ZoneKernelSyscallEvent) -> Result<CString> {
-        // OPENAT_X is specialcased to get the path from the ENTER event in libsinsp.
-        // For all others, it's pulled from the exit event.
-        if event.event_type == event_codes::PPME_SYSCALL_OPENAT_X as u32 {
-            Ok(self
-                .threadstate
-                .with_zoneinfo(&event.zone_id, |zinfo| {
-                    zinfo.get_enter_event(event).and_then(|enter_evt| {
-                        enter_evt
-                            .event_params
-                            .iter()
-                            .find(|param| param.name == "name")
-                            .and_then(|param| CString::new(param.param_pretty.clone()).ok())
-                    })
-                })
-                .unwrap_or(CString::new("NA").expect("default value must parse")))
-        } else {
-            Ok(Self::get_paths_from_evt_params(event)
-                .into_iter()
-                .find_map(|path_type| {
-                    if let EventPathType::Singular(path) = path_type {
-                        CString::new(path).ok()
-                    } else {
-                        None
-                    }
-                })
-                .unwrap_or(CString::new("NA").expect("default value must parse")))
-        }
+        // With modern_bpf (exit-only events), all paths are in the exit event params.
+        // The old libsinsp code that retrieved openat paths from enter events is obsolete.
+        // See: libs/driver/modern_bpf/programs/tail_called/events/syscall_dispatched_events/openat.bpf.c
+        Ok(Self::get_paths_from_evt_params(event)
+            .into_iter()
+            .find_map(|path_type| {
+                if let EventPathType::Singular(path) = path_type {
+                    CString::new(path).ok()
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(CString::new("NA").expect("default value must parse")))
     }
 
     fn get_fs_path_sourceraw(&mut self, event: &ZoneKernelSyscallEvent) -> Result<CString> {

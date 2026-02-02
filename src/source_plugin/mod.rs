@@ -72,8 +72,9 @@ impl EderaSourcePluginInstance {
                                 // pull out the timestamp and use it as the scap event's timestamp.
                                 let encoded = evt.encode_length_delimited_to_vec();
                                 let mut wrapped_evt = Self::plugin_event(encoded.as_slice());
-                                // set the wrapped evt TS to the original evt ts
+                                // set the wrapped evt TS and TID to the original evt values
                                 wrapped_evt.metadata.ts = evt.timestamp;
+                                wrapped_evt.metadata.tid = evt.thread_id as i64;
                                 batch.add(wrapped_evt).expect("event should add");
                                 drained_event_count += 1;
 
