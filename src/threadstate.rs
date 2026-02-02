@@ -64,7 +64,6 @@ pub struct ExecTime {
 #[derive(Default)]
 pub struct ZoneInfo {
     seen_threadsnaps: HashMap<u64, ZoneKernelThreadInfo>,
-    last_enter_event_for_tid: HashMap<u64, ZoneKernelSyscallEvent>,
     // TODO(bml) consider dropping this
     dropped_fds_by_thread: HashMap<u64, u64>,
     last_proc_switch_times_by_cpuid: HashMap<u32, ExecTime>,
@@ -76,57 +75,18 @@ impl ZoneInfo {
         self.seen_threadsnaps.get(thread_id)
     }
 
-    pub fn get_enter_event(
-        &self,
-        exit_event: &ZoneKernelSyscallEvent,
-    ) -> Option<&ZoneKernelSyscallEvent> {
-        if let Some(enter_event) = self.get_lastevent(&exit_event.thread_id) {
-            let exit_type = event_codes::from_repr(exit_event.event_type)
-                .ok_or(anyhow!("could not parse exit event type"))
-                .expect("should parse");
-
-            let enter_type = event_codes::from_repr(enter_event.event_type)
-                .ok_or(anyhow!("could not parse enter event type"))
-                .expect("should parse");
-            let computed_correlate = event_codes::from_repr(exit_event.event_type - 1);
-            if exit_type == event_codes::PPME_SYSCALL_EXECVE_19_X
-                && enter_type == event_codes::PPME_SYSCALL_EXECVEAT_E
-            {
-                Some(enter_event)
-            } else if computed_correlate.is_some()
-                && (enter_type != computed_correlate.expect("already checked"))
-            {
-                None
-            } else {
-                Some(enter_event)
-            }
-        } else {
-            None
-        }
-    }
-
-    /// This checks
-    /// - If this is an enter event, whether it's one that specifies a FD, and if so,
-    ///   returns the FD info for that, if we have it.
-    /// - If this is an exit event,and if so, whether it's one whose enter event we saw specifies an FD, and
-    ///   if so returns the FD info for that, if we have it, otherwise checks if this is one of the rare exit events that also defines an
-    ///   FD num, and returns that fdinfo if present.
-    ///   
-    /// Otherwise, returns None
-    pub fn get_enterexit_event_fdinfo(
-        &self,
-        event: &ZoneKernelSyscallEvent,
-    ) -> Option<ZoneKernelFdInfo> {
+    /// Get FD info for an event.
+    ///
+    /// Modern BPF driver only captures exit events, so this extracts FD information
+    /// from event parameters and looks up the corresponding FD info.
+    ///
+    /// Returns None if the event doesn't use an FD or if the FD info is not found.
+    pub fn get_event_fdinfo(&self, event: &ZoneKernelSyscallEvent) -> Option<ZoneKernelFdInfo> {
+        // Only exit events are captured by modern_bpf driver
         if parsers::has_fd(event) {
-            if parsers::is_enter(event) {
-                self.get_enter_fdi(event).and_then(|fdi| {
-                    self.with_leader_fdlist_ctx(event, |fdlist| fdlist.get(&fdi).cloned())
-                })
-            } else {
-                parsers::get_fdi(event).and_then(|fdi| {
-                    self.with_leader_fdlist_ctx(event, |fdlist| fdlist.get(&fdi).cloned())
-                })
-            }
+            parsers::get_fdi(event).and_then(|fdi| {
+                self.with_leader_fdlist_ctx(event, |fdlist| fdlist.get(&fdi).cloned())
+            })
         } else {
             None
         }
@@ -268,38 +228,6 @@ impl ZoneInfo {
         F: FnOnce(&mut HashMap<u64, ZoneKernelThreadInfo>) -> Option<R>,
     {
         f(&mut self.seen_threadsnaps)
-    }
-
-    /// See `sinsp_parser::reset` in libsinsp/parsers.cpp.
-    /// Since we store the whole "sibling enter event", for context on handling a given exit event,
-    /// we don't need to do most of the stuff the CPP version does, except for storing/invalidating
-    /// the sibling event.
-    fn preprocess_event(&mut self, event: &ZoneKernelSyscallEvent, etype: event_codes) {
-        use event_codes::*;
-        // if this is an enter event, update the "last_event for this zone/tid"
-        // table to be *this event*. TODO BML both sinsp code and what I've seen indicate
-        // that in a lot of cases this pairing stuff isn't totally required, and could be refactored out.
-        if parsers::is_enter(event) {
-            // TODO BML scap code sets up enter timestamp here, but I don't think we need that?
-            // We already know the enter timestamp.
-            self.last_enter_event_for_tid
-                .insert(event.thread_id, event.clone());
-        } else {
-            // TODO BML scap code sets up enter timestamp here, but I don't think we need that?
-            // We already know the enter timestamp from lastevent ts.
-            if let Some(last_evt) = self.last_enter_event_for_tid.get(&event.thread_id) {
-                // in either of these cases, the last event is the corresponding enter event for this type,
-                // and we're good.
-                // mimicking libsinsp - if this is an exit event, and the last enter event does not match,
-                // we can't use lastevent - clear it.
-                if !(etype == PPME_SYSCALL_EXECVE_19_X
-                    && last_evt.event_type == PPME_SYSCALL_EXECVEAT_E as u32)
-                    && (etype as u32 != last_evt.event_type + 1)
-                {
-                    self.clear_lastevent(&event.thread_id);
-                }
-            }
-        }
     }
 
     fn parse_rw_exit(&mut self, event: &ZoneKernelSyscallEvent, etype: event_codes) -> Result<()> {
@@ -691,17 +619,14 @@ impl ZoneInfo {
             return Ok(());
         };
 
-        let enter_evt = if etype != PPME_SYSCALL_OPEN_BY_HANDLE_AT_X {
-            self.get_lastevent(&event.thread_id)
-        } else {
-            None
-        };
+        // With modern_bpf (exit-only events), there are no enter events to retrieve.
+        // All data comes from the exit event parameters.
         let fd = parsers::get_retval(event);
 
-        let mut exit_name: String;
+        let exit_name: String;
         let mut exit_flags: u32;
-        let mut exit_dirfd: i64;
-        let mut exit_sdir: Option<PathBuf>;
+        let exit_dirfd: i64;
+        let exit_sdir: Option<PathBuf>;
         let mut exit_dev: Option<u32> = None;
         let mut exit_ino: Option<u64> = None;
 
@@ -714,29 +639,15 @@ impl ZoneInfo {
                     exit_dev = Some(u32::from_ne_bytes(
                         event.event_params[4].param_data.as_slice().try_into()?,
                     ));
-                    if event.event_params.len() > 4 {
+                    if event.event_params.len() > 5 {
                         exit_ino = Some(u64::from_ne_bytes(
-                            event.event_params[4].param_data.as_slice().try_into()?,
+                            event.event_params[5].param_data.as_slice().try_into()?,
                         ));
                     }
                 }
 
-                if let Some(enter) = enter_evt
-                    && enter.event_params.len() >= 2
-                {
-                    let enter_name = enter.event_params[0].param_pretty.clone();
-                    let enter_flags =
-                        u32::from_ne_bytes(enter.event_params[1].param_data.as_slice().try_into()?);
-
-                    // override with enter event name if set
-                    if !enter.event_name.is_empty() && enter.event_name != "<NA>" {
-                        exit_name = enter_name;
-                        // keep flags added by the syscall exit probe if present
-                        let mask = !(ppm_consts::PPM_O_F_CREATED - 1);
-                        let added_flags = exit_flags & mask;
-                        exit_flags = enter_flags | added_flags;
-                    }
-                }
+                // Note: Old libsinsp code would override with enter event data for TOCTOU mitigation.
+                // With modern_bpf (exit-only events), we just use the exit event data directly.
 
                 exit_sdir = Some(PathBuf::from(&tinfo.cwd));
             }
@@ -765,34 +676,19 @@ impl ZoneInfo {
                     }
                 }
 
-                if let Some(enter) = enter_evt
-                    && !enter.event_params.is_empty()
-                {
-                    let enter_name = enter.event_params[0].param_pretty.clone();
-                    let enter_flags = 0;
-
-                    // override with enter event name if set
-                    if !enter.event_name.is_empty() && enter.event_name != "<NA>" {
-                        exit_name = enter_name;
-                        exit_flags |= enter_flags
-                    }
-                }
+                // Note: Old libsinsp code would override with enter event data for TOCTOU mitigation.
+                // With modern_bpf (exit-only events), we just use the exit event data directly.
 
                 exit_sdir = Some(PathBuf::from(&tinfo.cwd));
             }
             PPME_SYSCALL_OPENAT_X => {
-                exit_flags = 0;
-                exit_sdir = None;
-                exit_name = "<NA>".into();
-
-                if let Some(enter) = enter_evt {
-                    exit_name = enter.event_params[1].param_pretty.clone();
-                    exit_flags =
-                        u32::from_ne_bytes(enter.event_params[2].param_data.as_slice().try_into()?);
-                    exit_dirfd =
-                        i64::from_ne_bytes(enter.event_params[0].param_data.as_slice().try_into()?);
-                    exit_sdir = self.parse_dirfd(event, &exit_name, exit_dirfd);
-                }
+                // This is the old OPENAT format that required enter event data.
+                // Modern_bpf generates PPME_SYSCALL_OPENAT_2_X instead (see openat.bpf.c line 20).
+                // If we somehow receive this event type, we can't process it without enter events.
+                warn!(
+                    "Received unsupported PPME_SYSCALL_OPENAT_X event (requires enter event data)"
+                );
+                return Ok(());
             }
             PPME_SYSCALL_OPENAT_2_X | PPME_SYSCALL_OPENAT2_X => {
                 exit_name = event.event_params[2].param_pretty.clone();
@@ -825,25 +721,8 @@ impl ZoneInfo {
                     };
                 }
 
-                if let Some(enter) = enter_evt
-                    && event.event_params.len() >= 3
-                {
-                    let enter_name = enter.event_params[1].param_pretty.clone();
-                    let enter_flags =
-                        u32::from_ne_bytes(enter.event_params[2].param_data.as_slice().try_into()?);
-                    let enter_dirfd =
-                        i64::from_ne_bytes(enter.event_params[0].param_data.as_slice().try_into()?);
-
-                    // override with enter event name if set
-                    if !enter.event_name.is_empty() && enter.event_name != "<NA>" {
-                        exit_name = enter_name;
-                        // keep flags added by the syscall exit probe if present
-                        let mask = !(ppm_consts::PPM_O_F_CREATED - 1);
-                        let added_flags = exit_flags & mask;
-                        exit_flags = enter_flags | added_flags;
-                        exit_dirfd = enter_dirfd;
-                    }
-                }
+                // Note: Old libsinsp code would override with enter event data for TOCTOU mitigation.
+                // With modern_bpf (exit-only events), we just use the exit event data directly.
 
                 exit_sdir = self.parse_dirfd(event, &exit_name, exit_dirfd);
             }
@@ -888,6 +767,8 @@ impl ZoneInfo {
             && fd_ >= 0
         {
             let valid_fd = fd_ as u64; // we just checked
+            let fullpath_str = fullpath.to_string_lossy().to_string();
+
             let fdinfo = ZoneKernelFdInfo {
                 fd: Some(valid_fd),
                 inode: exit_ino.unwrap_or(0),
@@ -901,7 +782,7 @@ impl ZoneInfo {
                         open_flags: exit_flags,
                         mount_id: 0,
                         device: exit_dev.unwrap_or(0),
-                        name: fullpath.to_string_lossy().to_string(),
+                        name: fullpath_str,
                     })),
                 }),
                 open_flags: exit_flags,
@@ -917,7 +798,10 @@ impl ZoneInfo {
                 },
             };
 
-            self.with_mut_leader_fdlist_ctx(event, |fdlist| fdlist.insert(valid_fd, fdinfo));
+            self.with_mut_leader_fdlist_ctx(event, |fdlist| {
+                fdlist.insert(valid_fd, fdinfo);
+                Some(())
+            });
         }
 
         Ok(())
@@ -947,17 +831,13 @@ impl ZoneInfo {
         Ok(())
     }
 
-    /// TODO(bml) mostly unused I think
+    /// This function was used in old libsinsp to retrieve enter event data.
+    /// With modern_bpf (exit-only events), this is a no-op.
     fn parse_fspath_related_exit(
         &mut self,
-        event: &ZoneKernelSyscallEvent,
+        _event: &ZoneKernelSyscallEvent,
         _etype: event_codes,
     ) -> Result<()> {
-        if let Some(_enter_event) = self.get_lastevent(&event.thread_id) {
-            // TODO(bml) all this does is fetch the enter event's name for a corresponding exit event and
-            // save it off. We don't need that.
-        }
-
         Ok(())
     }
 
@@ -1773,13 +1653,14 @@ impl ZoneInfo {
                 );
 
                 if tinfo.clone_ts != 0 {
-                    tinfo.exe_ino_ctime_duration_clone_ts = tinfo.clone_ts - tinfo.exe_ino_ctime;
+                    tinfo.exe_ino_ctime_duration_clone_ts =
+                        tinfo.clone_ts.wrapping_sub(tinfo.exe_ino_ctime);
                 }
 
                 if tinfo.pidns_init_start_ts != 0 && tinfo.exe_ino_ctime > tinfo.pidns_init_start_ts
                 {
                     tinfo.exe_ino_ctime_duration_pidns_start =
-                        tinfo.exe_ino_ctime - tinfo.pidns_init_start_ts;
+                        tinfo.exe_ino_ctime.wrapping_sub(tinfo.pidns_init_start_ts);
                 }
             }
 
@@ -2001,7 +1882,7 @@ impl ZoneInfo {
         }
 
         // for this event type, we have to look back at the corresponding enter event to extract the FD.
-        let enter_fdi: Option<u64> = self.get_enter_fdi(event);
+        let enter_fdi: Option<u64> = parsers::get_fdi(event);
 
         if let Some(e_fdi) = enter_fdi {
             self.with_mut_leader_fdlist_ctx(event, |fdlist| {
@@ -2016,51 +1897,6 @@ impl ZoneInfo {
         } else {
             return Ok(());
         }
-        Ok(())
-    }
-
-    fn parse_connect_enter(
-        &mut self,
-        event: &ZoneKernelSyscallEvent,
-        etype: event_codes,
-    ) -> Result<()> {
-        if event.event_params[1].param_data.is_empty() {
-            // not much we can do if address info not here.
-            warn!("no address info found for connect enter event: {:?}", event);
-            return Ok(());
-        }
-
-        // this IS an enter event, so we don't need to consult anything or "find" the enter event
-        // to get the fdi
-        let enter_fdi = parsers::get_enter_event_fd_loc(event, etype).and_then(|fd_loc| {
-            if event.event_params[fd_loc as usize].param_type != param_type::PT_FD as u32 {
-                warn!("unexpected param type for connect enter, cannot infer FD");
-                None
-            } else {
-                event.event_params[fd_loc as usize]
-                    .param_data
-                    .as_slice()
-                    .try_into()
-                    .ok()
-                    .map(i64::from_ne_bytes)
-                    .and_then(|i| i.try_into().ok())
-            }
-        });
-
-        if let Some(e_fdi) = enter_fdi {
-            self.with_mut_leader_fdlist_ctx(event, |fdlist| {
-                if let Some(fdinfo) = fdlist.get_mut(&e_fdi) {
-                    Self::update_sockfd_from_tuple(fdinfo, &event.event_params[1]);
-                    Self::set_role_server(fdinfo);
-                    Some(())
-                } else {
-                    None
-                }
-            });
-        } else {
-            return Ok(());
-        }
-
         Ok(())
     }
 
@@ -2074,7 +1910,7 @@ impl ZoneInfo {
         let mut overwrite_stale = false;
 
         // for this event type, we have to look back at the corresponding enter event to extract the FD.
-        let enter_fdi: Option<u64> = self.get_enter_fdi(event);
+        let enter_fdi: Option<u64> = parsers::get_fdi(event);
 
         // this event type also has the fd in the exit, so if we (for some reason)
         // could not snag it from the enter event, then grab it here as a fallback
@@ -2170,7 +2006,7 @@ impl ZoneInfo {
         }
 
         // for this event type, we have to look back at the corresponding enter event to extract the FD.
-        if let Some(enter_fdi) = self.get_enter_fdi(event) {
+        if let Some(enter_fdi) = parsers::get_fdi(event) {
             self.mark_fd_dropped(&event.thread_id, &enter_fdi);
         }
         Ok(())
@@ -2197,7 +2033,7 @@ impl ZoneInfo {
         }
 
         // reinsert the fd with the new fd number
-        self.get_enter_fdi(event).and_then(|enter_fdi| {
+        parsers::get_fdi(event).and_then(|enter_fdi| {
             self.with_mut_leader_fdlist_ctx(event, |fdlist| {
                 fdlist
                     .get(&enter_fdi)
@@ -2257,7 +2093,7 @@ impl ZoneInfo {
         };
 
         // set the thread cwd to the name of the fd fchdir was invoked aginst
-        self.get_enter_fdi(event).map(|enter_fdi| {
+        parsers::get_fdi(event).map(|enter_fdi| {
             self.with_mut_leader_fdlist_ctx(event, |fdlist| {
                 fdlist.get(&enter_fdi).map(|fdinfo| {
                     fdinfo
@@ -2335,7 +2171,7 @@ impl ZoneInfo {
         //  - dup3(): same as dup2()."
 
         let oldfdi = retval as u64;
-        let enterfdi = self.get_enter_fdi(event);
+        let enterfdi = parsers::get_fdi(event);
         self.with_mut_leader_ctx(event, |l_tinfo| {
             // for dup3, we only need to set/reset CLOEXEC
             if etype == event_codes::PPME_SYSCALL_DUP3_X {
@@ -2842,37 +2678,6 @@ impl ZoneInfo {
         fdinfo.state_flags |= FLAGS_CONNECTION_FAILED;
     }
 
-    // for some event types, we have to look back at the corresponding enter event to extract the FD.
-    fn get_enter_fdi(&self, event: &ZoneKernelSyscallEvent) -> Option<u64> {
-        let etype = event_codes::from_repr(event.event_type)
-            .ok_or(anyhow!("could not parse event type"))
-            .expect("should parse");
-
-        self.get_enter_event(event).and_then(|enter_event| {
-            if let Some(fd_loc) = parsers::get_enter_event_fd_loc(event, etype) {
-                if enter_event.event_params[fd_loc as usize].param_type != param_type::PT_FD as u32
-                {
-                    warn!(
-                        "unexpected param type for enter event pos {}, cannot infer FD",
-                        fd_loc
-                    );
-                    None
-                } else {
-                    enter_event.event_params[fd_loc as usize]
-                        .param_data
-                        .as_slice()
-                        .try_into()
-                        .ok()
-                        .map(i64::from_ne_bytes)
-                        .and_then(|i| i.try_into().ok())
-                }
-            } else {
-                warn!("no fd found for enter event: {:?}", event);
-                None
-            }
-        })
-    }
-
     fn mark_thread_dead(tinfo: &mut ZoneKernelThreadInfo) {
         tinfo.flags |= ppm_consts::PPM_CL_CLOSED;
     }
@@ -2985,6 +2790,11 @@ impl ZoneInfo {
         fdinfo: &mut ZoneKernelFdInfo,
         tuple_param: &ZoneKernelEventParam,
     ) -> bool {
+        // Check if param_data is empty
+        if tuple_param.param_data.is_empty() {
+            return false;
+        }
+
         let family = tuple_param.param_data[0] as u32;
         let u32_size = std::mem::size_of::<u32>();
         let u16_size = std::mem::size_of::<u16>();
@@ -3306,14 +3116,6 @@ impl ZoneInfo {
             }
         }
     }
-
-    fn get_lastevent(&self, tid: &u64) -> Option<&ZoneKernelSyscallEvent> {
-        self.last_enter_event_for_tid.get(tid)
-    }
-
-    fn clear_lastevent(&mut self, tid: &u64) {
-        self.last_enter_event_for_tid.remove(tid);
-    }
 }
 
 impl ThreadState {
@@ -3378,22 +3180,11 @@ impl ThreadState {
             return Ok(());
         };
 
-        zinfo.preprocess_event(event, etype);
-
         match etype {
-            // if an open/create ENTER event, just record the most recent event for the tid.
-            // TODO BML both here and in libsinsp, this seems redundant with preprocess?
-            PPME_SYSCALL_OPEN_E
-            | PPME_SYSCALL_CREAT_E
-            | PPME_SYSCALL_OPENAT_E
-            | PPME_SYSCALL_OPENAT_2_E
-            | PPME_SYSCALL_OPENAT2_E
-            | PPME_SYSCALL_EXECVE_19_E
-            | PPME_SYSCALL_EXECVEAT_E => {
-                debug!("nothing to do for enter event type: {:?}", etype);
-                // zinfo.parse_create_open_enter(event);
-                Ok(())
-            }
+            // Modern BPF driver only captures exit events - these enter events never arrive:
+            // PPME_SYSCALL_OPEN_E | PPME_SYSCALL_CREAT_E | PPME_SYSCALL_OPENAT_E |
+            // PPME_SYSCALL_OPENAT_2_E | PPME_SYSCALL_OPENAT2_E | PPME_SYSCALL_EXECVE_19_E |
+            // PPME_SYSCALL_EXECVEAT_E
             PPME_SYSCALL_READ_X
             | PPME_SYSCALL_WRITE_X
             | PPME_SOCKET_RECV_X
@@ -3443,7 +3234,7 @@ impl ThreadState {
             PPME_SYSCALL_PIPE_X | PPME_SYSCALL_PIPE2_X => zinfo.parse_pipe_exit(event, etype),
             PPME_SOCKET_SOCKET_X => zinfo.parse_socket_exit(event),
             PPME_SOCKET_BIND_X => zinfo.parse_bind_exit(event),
-            PPME_SOCKET_CONNECT_E => zinfo.parse_connect_enter(event, etype),
+            // PPME_SOCKET_CONNECT_E never arrives from modern_bpf (only captures exit events)
             PPME_SOCKET_CONNECT_X => zinfo.parse_connect_exit(event),
             PPME_SOCKET_ACCEPT_X
             | PPME_SOCKET_ACCEPT_5_X
@@ -3543,7 +3334,7 @@ impl ThreadState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use proto::generated::protect::control::v1::{
+    use crate::proto::generated::protect::control::v1::{
         ZoneKernelEventParam, ZoneKernelFdInfo, ZoneKernelFdInfoData, ZoneKernelIpv4SocketInfo,
         ZoneKernelSyscallEvent, ZoneKernelThreadInfo, ZoneKernelThreadSnapshotEvent,
     };
@@ -3695,80 +3486,6 @@ mod tests {
         let result = state.with_threadinfo(zone_id, &100, |tinfo| Some(tinfo.tid.unwrap()));
 
         assert_eq!(result, Some(100));
-    }
-
-    #[test]
-    fn preprocess_event_enter_stores_event() {
-        let mut state = ThreadState::default();
-        let zone_id = "test-zone";
-
-        let mut thread_info = HashMap::new();
-        thread_info.insert(100, create_thread_info(100, 100));
-
-        let snap = ZoneKernelThreadSnapshotEvent {
-            zone_id: zone_id.to_string(),
-            thread_info,
-            zone_boot_epoch: 5000,
-        };
-
-        state.init_zone_with_snap(snap);
-        let zinfo = state
-            .zone_info
-            .get_mut(zone_id)
-            .expect("zone must be present");
-
-        let event = create_test_event(zone_id, 100, event_codes::PPME_SYSCALL_OPEN_E as u32);
-        zinfo.preprocess_event(&event, event_codes::PPME_SYSCALL_OPEN_E);
-
-        let stored = zinfo.get_lastevent(&100);
-        assert!(stored.is_some());
-        assert_eq!(
-            stored.unwrap().event_type,
-            event_codes::PPME_SYSCALL_OPEN_E as u32
-        );
-    }
-
-    #[test]
-    fn preprocess_event_exit_clears_mismatched() {
-        let mut state = ThreadState::default();
-        let zone_id = "test-zone";
-
-        let mut thread_info = HashMap::new();
-        thread_info.insert(100, create_thread_info(100, 100));
-
-        let snap = ZoneKernelThreadSnapshotEvent {
-            zone_id: zone_id.to_string(),
-            thread_info,
-            zone_boot_epoch: 5000,
-        };
-
-        state.init_zone_with_snap(snap);
-
-        let zinfo = state
-            .zone_info
-            .get_mut(zone_id)
-            .expect("zone must be present");
-
-        // Store a different enter event
-        let enter_event = create_test_event(zone_id, 100, event_codes::PPME_SYSCALL_READ_E as u32);
-        zinfo.preprocess_event(&enter_event, event_codes::PPME_SYSCALL_READ_E);
-
-        // Process an exit event that doesn't match
-        let exit_event = create_test_event(zone_id, 100, event_codes::PPME_SYSCALL_OPEN_X as u32);
-        zinfo.preprocess_event(&exit_event, event_codes::PPME_SYSCALL_OPEN_X);
-
-        // Last event should be cleared
-        assert!(zinfo.get_lastevent(&100).is_none());
-    }
-
-    #[test]
-    fn get_enter_event_returns_none_when_missing() {
-        let zinfo = ZoneInfo::default();
-        let exit_event =
-            create_test_event("test-zone", 100, event_codes::PPME_SYSCALL_OPEN_X as u32);
-
-        let result = zinfo.get_enter_event(&exit_event);
-        assert!(result.is_none());
     }
 
     #[test]
@@ -4176,35 +3893,6 @@ mod tests {
                 assert_eq!(leader_tinfo.fdlist.len(), 1);
                 Some(())
             });
-    }
-
-    #[test]
-    fn clear_lastevent() {
-        let mut state = ThreadState::default();
-        let zone_id = "test-zone";
-
-        let mut thread_info = HashMap::new();
-        thread_info.insert(100, create_thread_info(100, 100));
-
-        let snap = ZoneKernelThreadSnapshotEvent {
-            zone_id: zone_id.to_string(),
-            thread_info,
-            zone_boot_epoch: 5000,
-        };
-
-        state.init_zone_with_snap(snap);
-
-        let zinfo = state
-            .zone_info
-            .get_mut(zone_id)
-            .expect("zone must be present");
-        let event = create_test_event(zone_id, 100, event_codes::PPME_SYSCALL_OPEN_E as u32);
-        zinfo.preprocess_event(&event, event_codes::PPME_SYSCALL_OPEN_E);
-
-        assert!(zinfo.get_lastevent(&100).is_some());
-
-        zinfo.clear_lastevent(&100);
-        assert!(zinfo.get_lastevent(&100).is_none());
     }
 
     #[test]
@@ -4824,7 +4512,7 @@ mod tests {
             fd_type: fd_types::SCAP_FD_IPV4_SERVSOCK as i32,
             info: Some(ZoneKernelFdInfoData {
                 info_type: Some(InfoType::Ipv4ServerSocket(
-                    proto::generated::protect::control::v1::ZoneKernelIpv4ServerSocketInfo {
+                    crate::proto::generated::protect::control::v1::ZoneKernelIpv4ServerSocketInfo {
                         local_ip: "0.0.0.0".to_string(),
                         local_port: 8080,
                         protocol: l4_types::SCAP_L4_TCP as i32,

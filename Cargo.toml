@@ -50,7 +50,7 @@ env_logger = "0.11.8"
 hyper = "1.8.0"
 hyper-util = "0.1.19"
 libc = "0.2.180"
-libscap-bindings = { version = "0.0.3", default-features = false }
+libscap-bindings = { version = "0.0.4", default-features = false }
 log = "0.4.29"
 nix = { version = "0.31.1", features = ["signal"] }
 pin-project-lite = "0.2.16"
