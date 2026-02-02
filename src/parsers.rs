@@ -5,9 +5,9 @@ use crate::proto::generated::protect::control::v1::{
 use anyhow::{Result, anyhow};
 use libscap_bindings::consts as ppm_consts;
 use libscap_bindings::types::{
-    ppm_event_code as event_codes, ppm_event_flags as event_flags, scap_l4_proto as l4_types,
+    ppm_event_code as event_codes, ppm_event_flags as event_flags, ppm_param_type as param_type,
+    scap_l4_proto as l4_types,
 };
-use log::debug;
 use std::ffi::CStr;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -92,7 +92,16 @@ pub fn is_wait(evt: &ZoneKernelSyscallEvent) -> bool {
 }
 
 pub fn has_fd(evt: &ZoneKernelSyscallEvent) -> bool {
-    (evt.event_flags & (event_flags::EF_USES_FD as u32)) != 0
+    // Check event_flags first
+    if (evt.event_flags & (event_flags::EF_USES_FD as u32)) != 0 {
+        return true;
+    }
+
+    // Fallback: check if any parameter is of type PT_FD
+    // This handles edge cases where event_flags might still not be populated
+    evt.event_params
+        .iter()
+        .any(|param| param.param_type == param_type::PT_FD as u32)
 }
 
 pub fn reads_fd(evt: &ZoneKernelSyscallEvent) -> bool {
@@ -145,12 +154,14 @@ pub fn has_retval(evt: &ZoneKernelSyscallEvent) -> bool {
         return false;
     }
     // The event has a return value if:
-    // * it is a syscall event.
+    // * it is a syscall event (or a syscall-like metaevent).
     // * it is an exit event.
     // * it has at least one parameter. Some exit events are not instrumented, see
     // `PPME_SOCKET_GETSOCKNAME_X`
-
-    if evt.event_category.contains("SYSCALL") && !is_enter(evt) && !evt.event_params.is_empty() {
+    if (evt.event_category.contains("SYSCALL") || evt.event_category.contains("EC_METAEVENT"))
+        && !is_enter(evt)
+        && !evt.event_params.is_empty()
+    {
         return true;
     }
 
@@ -167,37 +178,30 @@ pub fn get_retval(evt: &ZoneKernelSyscallEvent) -> Option<i64> {
     }
 }
 
-/// If this event is the kind of syscall event (enter types, some others) that encodes an FD,
-/// return the FD number (for table lookup, etc).
-/// Note that unlike libsinsp's equivalents, this can be passed an enter or exit event,
-/// and will suck out the FDI (if present) in either case.
+/// Extract FD number from an event.
+///
+/// Modern BPF driver only captures exit events, so this extracts FD from exit event parameters.
+/// It searches for a parameter with type PT_FD and returns its value.
 pub fn get_fdi(event: &ZoneKernelSyscallEvent) -> Option<u64> {
     use event_codes::*;
+
+    if !has_fd(event) {
+        return None;
+    }
+
     let etype = event_codes::from_repr(event.event_type)
         .ok_or(anyhow!("could not parse event type"))
         .expect("should parse");
 
-    // most FDs come in the enter event
-    let maybe_fd_loc: Option<usize> = if is_enter(event) {
-        if has_fd(event) {
-            match etype {
-                PPME_SYSCALL_MMAP_E | PPME_SYSCALL_MMAP2_E => Some(4),
-
-                PPME_SYSCALL_SPLICE_E => Some(1),
-                _ => {
-                    Some(0) // *most* of the time, the 0th param is the fd
-                }
-            }
-        } else {
-            None
-        }
-    // sendmmsg and recvmmsg send all data in the EXIT event, fd included.
-    } else if (etype == PPME_SOCKET_SENDMMSG_X || etype == PPME_SOCKET_RECVMMSG_X)
-        && !event.event_params.is_empty()
-    {
+    // For exit events (modern_bpf only captures these), search for the FD parameter
+    // Special case: sendmmsg and recvmmsg have FD at position 1
+    let maybe_fd_loc: Option<usize> = if etype == PPME_SOCKET_SENDMMSG_X || etype == PPME_SOCKET_RECVMMSG_X {
         Some(1)
     } else {
-        None
+        // For other exit events, search for the PT_FD parameter
+        event.event_params
+            .iter()
+            .position(|param| param.param_type == param_type::PT_FD as u32)
     };
 
     if let Some(loc) = maybe_fd_loc {
@@ -244,23 +248,6 @@ pub fn hex_char_to_nibble(c: u8) -> Option<u8> {
         b'a'..=b'f' => Some(c - b'a' + 10),
         b'A'..=b'F' => Some(c - b'A' + 10),
         _ => None,
-    }
-}
-
-pub fn get_enter_event_fd_loc(event: &ZoneKernelSyscallEvent, etype: event_codes) -> Option<u64> {
-    use event_codes::*;
-    if !is_enter(event) || !has_fd(event) {
-        debug!("not an enter event or has no FD {:?}", event);
-        return None;
-    }
-
-    match etype {
-        PPME_SYSCALL_MMAP_E | PPME_SYSCALL_MMAP2_E => Some(4),
-        PPME_SYSCALL_SPLICE_E => Some(1),
-        _ => {
-            // For almost all parameters the default position is `0`
-            Some(0)
-        }
     }
 }
 
