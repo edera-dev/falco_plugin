@@ -616,6 +616,10 @@ impl ZoneInfo {
         use event_codes::*;
 
         let Some(tinfo) = self.seen_threadsnaps.get(&event.thread_id) else {
+            warn!(
+                "no thread found for open tid={}: dropping event",
+                event.thread_id
+            );
             return Ok(());
         };
 
@@ -941,7 +945,9 @@ impl ZoneInfo {
             let event_ts: u128 = event.timestamp.into();
             let thread_clone_ts: u128 = tinfo.clone_ts.into();
 
-            if event_ts - thread_clone_ts < Duration::new(2, 0).as_nanos() {
+            // Use saturating_sub to prevent underflow if event_ts < thread_clone_ts
+            // (which can happen if timestamps are from different time references)
+            if event_ts.saturating_sub(thread_clone_ts) < Duration::new(2, 0).as_nanos() {
                 //thread is valid and already in the table, nothing to do.
                 // libsinsp: "Note that if we are in a container the caller
                 // will never generate the child thread-info because it doesn't have
@@ -1471,7 +1477,10 @@ impl ZoneInfo {
     fn parse_execve_exit(&mut self, event: &ZoneKernelSyscallEvent) -> Result<()> {
         let Some(tinfo) = self.seen_threadsnaps.get_mut(&event.thread_id) else {
             // if no thread info, bail
-            debug!("no thread found for execve: {:?}", event);
+            warn!(
+                "no thread found for execve tid={}: dropping event",
+                event.thread_id
+            );
             return Ok(());
         };
 
@@ -2001,7 +2010,10 @@ impl ZoneInfo {
 
         // if no thread info, bail
         if !self.seen_threadsnaps.contains_key(&event.thread_id) {
-            debug!("no thread found for fcntl event {:?}", event);
+            warn!(
+                "no thread found for close tid={}: dropping event",
+                event.thread_id
+            );
             return Ok(());
         }
 
