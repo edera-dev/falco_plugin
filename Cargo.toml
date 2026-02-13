@@ -38,7 +38,7 @@ exclude = [
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-anyhow = "1.0.99"
+anyhow = "1.0.101"
 async-stream = "0.3.6"
 aya = "0.13"
 caps = "0.5.5"
@@ -48,9 +48,9 @@ falco_plugin_api = { version = "0.5.1" }
 falco_event = { version = "0.5.1" }
 env_logger = "0.11.8"
 hyper = "1.8.0"
-hyper-util = "0.1.19"
+hyper-util = "0.1.20"
 libc = "0.2.180"
-libscap-bindings = { version = "0.0.4", default-features = false }
+libscap-bindings = { version = "0.0.5", default-features = false }
 log = "0.4.29"
 nix = { version = "0.31.1", features = ["signal"] }
 pin-project-lite = "0.2.16"
@@ -58,11 +58,11 @@ prost = "0.14.3"
 strum_macros = "0.27"
 tokio = { version = "1.49.0", features = ["full"] }
 tokio-stream = { version="0.1.18", features = ["sync"] }
-tonic = "0.14.2"
+tonic = "0.14.3"
 tower = "0.5.3"
 url = "2.5.8"
 uuid = { version = "1.20.0", features = ["v4"] }
 pbjson = "0.9.0"
 pbjson-types = "0.9.0"
 serde = { version = "1.0.219", features = ["derive"] }
-tonic-prost = { version = "0.14.2" }
+tonic-prost = { version = "0.14.3" }
