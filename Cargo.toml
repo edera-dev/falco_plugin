@@ -38,7 +38,7 @@ exclude = [
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 async-stream = "0.3.6"
 aya = "0.13"
 caps = "0.5.5"
@@ -58,11 +58,11 @@ prost = "0.14.3"
 strum_macros = "0.27"
 tokio = { version = "1.49.0", features = ["full"] }
 tokio-stream = { version="0.1.18", features = ["sync"] }
-tonic = "0.14.3"
+tonic = "0.14.5"
 tower = "0.5.3"
 url = "2.5.8"
-uuid = { version = "1.20.0", features = ["v4"] }
+uuid = { version = "1.21.0", features = ["v4"] }
 pbjson = "0.9.0"
 pbjson-types = "0.9.0"
 serde = { version = "1.0.219", features = ["derive"] }
-tonic-prost = { version = "0.14.3" }
+tonic-prost = { version = "0.14.5" }
