@@ -56,7 +56,7 @@ nix = { version = "0.31.2", features = ["signal"] }
 pin-project-lite = "0.2.17"
 prost = "0.14.3"
 strum_macros = "0.28"
-tokio = { version = "1.51.1", features = ["full"] }
+tokio = { version = "1.52.0", features = ["full"] }
 tokio-stream = { version="0.1.18", features = ["sync"] }
 tonic = "0.14.5"
 tower = "0.5.3"
