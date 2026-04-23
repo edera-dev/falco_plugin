@@ -41,7 +41,7 @@ crate-type = ["rlib", "cdylib"]
 anyhow = "1.0.102"
 async-stream = "0.3.6"
 aya = "0.13"
-caps = "0.5.5"
+caps = "0.5.6"
 dns-lookup = "3.0.1"
 falco_plugin = { version = "0.5.1" }
 falco_plugin_api = { version = "0.5.1" }
@@ -50,19 +50,19 @@ env_logger = "0.11.10"
 hyper = "1.9.0"
 hyper-util = "0.1.20"
 libc = "0.2.185"
-libscap-bindings = { version = "0.0.6", default-features = false }
+libscap-bindings = { version = "0.0.7", default-features = false }
 log = "0.4.29"
 nix = { version = "0.31.2", features = ["signal"] }
 pin-project-lite = "0.2.17"
 prost = "0.14.3"
 strum_macros = "0.28"
-tokio = { version = "1.51.1", features = ["full"] }
+tokio = { version = "1.52.1", features = ["full"] }
 tokio-stream = { version="0.1.18", features = ["sync"] }
 tonic = "0.14.5"
 tower = "0.5.3"
 url = "2.5.8"
-uuid = { version = "1.23.0", features = ["v4"] }
+uuid = { version = "1.23.1", features = ["v4"] }
 pbjson = "0.9.0"
 pbjson-types = "0.9.0"
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
 tonic-prost = { version = "0.14.5" }

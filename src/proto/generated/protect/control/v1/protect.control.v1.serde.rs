@@ -3232,6 +3232,18 @@ impl serde::Serialize for GetHostStatusReply {
         if self.hyp_free_mem.is_some() {
             len += 1;
         }
+        if self.protect_git_sha.is_some() {
+            len += 1;
+        }
+        if self.protect_last_tag.is_some() {
+            len += 1;
+        }
+        if self.protect_revs_since_tag.is_some() {
+            len += 1;
+        }
+        if self.protect_branch.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.GetHostStatusReply", len)?;
         if !self.host_uuid.is_empty() {
             struct_ser.serialize_field("hostUuid", &self.host_uuid)?;
@@ -3255,6 +3267,20 @@ impl serde::Serialize for GetHostStatusReply {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
             struct_ser.serialize_field("hypFreeMem", ToString::to_string(&v).as_str())?;
+        }
+        if let Some(v) = self.protect_git_sha.as_ref() {
+            struct_ser.serialize_field("protectGitSha", v)?;
+        }
+        if let Some(v) = self.protect_last_tag.as_ref() {
+            struct_ser.serialize_field("protectLastTag", v)?;
+        }
+        if let Some(v) = self.protect_revs_since_tag.as_ref() {
+            #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
+            struct_ser.serialize_field("protectRevsSinceTag", ToString::to_string(&v).as_str())?;
+        }
+        if let Some(v) = self.protect_branch.as_ref() {
+            struct_ser.serialize_field("protectBranch", v)?;
         }
         struct_ser.end()
     }
@@ -3280,6 +3306,14 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
             "hostMac",
             "hyp_free_mem",
             "hypFreeMem",
+            "protect_git_sha",
+            "protectGitSha",
+            "protect_last_tag",
+            "protectLastTag",
+            "protect_revs_since_tag",
+            "protectRevsSinceTag",
+            "protect_branch",
+            "protectBranch",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -3291,6 +3325,10 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
             HostIpv6,
             HostMac,
             HypFreeMem,
+            ProtectGitSha,
+            ProtectLastTag,
+            ProtectRevsSinceTag,
+            ProtectBranch,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -3319,6 +3357,10 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
                             "hostIpv6" | "host_ipv6" => Ok(GeneratedField::HostIpv6),
                             "hostMac" | "host_mac" => Ok(GeneratedField::HostMac),
                             "hypFreeMem" | "hyp_free_mem" => Ok(GeneratedField::HypFreeMem),
+                            "protectGitSha" | "protect_git_sha" => Ok(GeneratedField::ProtectGitSha),
+                            "protectLastTag" | "protect_last_tag" => Ok(GeneratedField::ProtectLastTag),
+                            "protectRevsSinceTag" | "protect_revs_since_tag" => Ok(GeneratedField::ProtectRevsSinceTag),
+                            "protectBranch" | "protect_branch" => Ok(GeneratedField::ProtectBranch),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -3345,6 +3387,10 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
                 let mut host_ipv6__ = None;
                 let mut host_mac__ = None;
                 let mut hyp_free_mem__ = None;
+                let mut protect_git_sha__ = None;
+                let mut protect_last_tag__ = None;
+                let mut protect_revs_since_tag__ = None;
+                let mut protect_branch__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::HostUuid => {
@@ -3393,6 +3439,32 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
                                 map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
                             ;
                         }
+                        GeneratedField::ProtectGitSha => {
+                            if protect_git_sha__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("protectGitSha"));
+                            }
+                            protect_git_sha__ = map_.next_value()?;
+                        }
+                        GeneratedField::ProtectLastTag => {
+                            if protect_last_tag__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("protectLastTag"));
+                            }
+                            protect_last_tag__ = map_.next_value()?;
+                        }
+                        GeneratedField::ProtectRevsSinceTag => {
+                            if protect_revs_since_tag__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("protectRevsSinceTag"));
+                            }
+                            protect_revs_since_tag__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::ProtectBranch => {
+                            if protect_branch__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("protectBranch"));
+                            }
+                            protect_branch__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(GetHostStatusReply {
@@ -3403,6 +3475,10 @@ impl<'de> serde::Deserialize<'de> for GetHostStatusReply {
                     host_ipv6: host_ipv6__.unwrap_or_default(),
                     host_mac: host_mac__.unwrap_or_default(),
                     hyp_free_mem: hyp_free_mem__,
+                    protect_git_sha: protect_git_sha__,
+                    protect_last_tag: protect_last_tag__,
+                    protect_revs_since_tag: protect_revs_since_tag__,
+                    protect_branch: protect_branch__,
                 })
             }
         }
@@ -8501,6 +8577,9 @@ impl serde::Serialize for ProcessSpec {
         if self.stderr {
             len += 1;
         }
+        if !self.additional_gids.is_empty() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.ProcessSpec", len)?;
         if !self.environment.is_empty() {
             struct_ser.serialize_field("environment", &self.environment)?;
@@ -8532,6 +8611,9 @@ impl serde::Serialize for ProcessSpec {
         if self.stderr {
             struct_ser.serialize_field("stderr", &self.stderr)?;
         }
+        if !self.additional_gids.is_empty() {
+            struct_ser.serialize_field("additionalGids", &self.additional_gids.iter().map(ToString::to_string).collect::<Vec<_>>())?;
+        }
         struct_ser.end()
     }
 }
@@ -8554,6 +8636,8 @@ impl<'de> serde::Deserialize<'de> for ProcessSpec {
             "stdin",
             "stdout",
             "stderr",
+            "additional_gids",
+            "additionalGids",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -8568,6 +8652,7 @@ impl<'de> serde::Deserialize<'de> for ProcessSpec {
             Stdin,
             Stdout,
             Stderr,
+            AdditionalGids,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -8599,6 +8684,7 @@ impl<'de> serde::Deserialize<'de> for ProcessSpec {
                             "stdin" => Ok(GeneratedField::Stdin),
                             "stdout" => Ok(GeneratedField::Stdout),
                             "stderr" => Ok(GeneratedField::Stderr),
+                            "additionalGids" | "additional_gids" => Ok(GeneratedField::AdditionalGids),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -8628,6 +8714,7 @@ impl<'de> serde::Deserialize<'de> for ProcessSpec {
                 let mut stdin__ = None;
                 let mut stdout__ = None;
                 let mut stderr__ = None;
+                let mut additional_gids__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Environment => {
@@ -8690,6 +8777,15 @@ impl<'de> serde::Deserialize<'de> for ProcessSpec {
                             }
                             stderr__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::AdditionalGids => {
+                            if additional_gids__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("additionalGids"));
+                            }
+                            additional_gids__ = 
+                                Some(map_.next_value::<Vec<::pbjson::private::NumberDeserialize<_>>>()?
+                                    .into_iter().map(|x| x.0).collect())
+                            ;
+                        }
                     }
                 }
                 Ok(ProcessSpec {
@@ -8703,6 +8799,7 @@ impl<'de> serde::Deserialize<'de> for ProcessSpec {
                     stdin: stdin__.unwrap_or_default(),
                     stdout: stdout__.unwrap_or_default(),
                     stderr: stderr__.unwrap_or_default(),
+                    additional_gids: additional_gids__.unwrap_or_default(),
                 })
             }
         }
@@ -12858,6 +12955,279 @@ impl<'de> serde::Deserialize<'de> for WorkloadMountStatus {
         deserializer.deserialize_struct("protect.control.v1.WorkloadMountStatus", FIELDS, GeneratedVisitor)
     }
 }
+impl serde::Serialize for WorkloadPciDeviceInfo {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.location.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadPciDeviceInfo", len)?;
+        if !self.location.is_empty() {
+            struct_ser.serialize_field("location", &self.location)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for WorkloadPciDeviceInfo {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "location",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Location,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "location" => Ok(GeneratedField::Location),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = WorkloadPciDeviceInfo;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct protect.control.v1.WorkloadPciDeviceInfo")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<WorkloadPciDeviceInfo, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut location__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Location => {
+                            if location__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("location"));
+                            }
+                            location__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(WorkloadPciDeviceInfo {
+                    location: location__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("protect.control.v1.WorkloadPciDeviceInfo", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for WorkloadPciDeviceSpec {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.location.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadPciDeviceSpec", len)?;
+        if !self.location.is_empty() {
+            struct_ser.serialize_field("location", &self.location)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for WorkloadPciDeviceSpec {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "location",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Location,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "location" => Ok(GeneratedField::Location),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = WorkloadPciDeviceSpec;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct protect.control.v1.WorkloadPciDeviceSpec")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<WorkloadPciDeviceSpec, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut location__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Location => {
+                            if location__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("location"));
+                            }
+                            location__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(WorkloadPciDeviceSpec {
+                    location: location__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("protect.control.v1.WorkloadPciDeviceSpec", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for WorkloadPciDeviceStatus {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.devices.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadPciDeviceStatus", len)?;
+        if !self.devices.is_empty() {
+            struct_ser.serialize_field("devices", &self.devices)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for WorkloadPciDeviceStatus {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "devices",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Devices,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "devices" => Ok(GeneratedField::Devices),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = WorkloadPciDeviceStatus;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct protect.control.v1.WorkloadPciDeviceStatus")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<WorkloadPciDeviceStatus, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut devices__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Devices => {
+                            if devices__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("devices"));
+                            }
+                            devices__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(WorkloadPciDeviceStatus {
+                    devices: devices__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("protect.control.v1.WorkloadPciDeviceStatus", FIELDS, GeneratedVisitor)
+    }
+}
 impl serde::Serialize for WorkloadScratchMount {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
@@ -13229,6 +13599,12 @@ impl serde::Serialize for WorkloadSpec {
         if !self.block_devices.is_empty() {
             len += 1;
         }
+        if self.oom_score_adj.is_some() {
+            len += 1;
+        }
+        if !self.pci_devices.is_empty() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadSpec", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
@@ -13263,6 +13639,12 @@ impl serde::Serialize for WorkloadSpec {
         if !self.block_devices.is_empty() {
             struct_ser.serialize_field("blockDevices", &self.block_devices)?;
         }
+        if let Some(v) = self.oom_score_adj.as_ref() {
+            struct_ser.serialize_field("oomScoreAdj", v)?;
+        }
+        if !self.pci_devices.is_empty() {
+            struct_ser.serialize_field("pciDevices", &self.pci_devices)?;
+        }
         struct_ser.end()
     }
 }
@@ -13288,6 +13670,10 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
             "hostname",
             "block_devices",
             "blockDevices",
+            "oom_score_adj",
+            "oomScoreAdj",
+            "pci_devices",
+            "pciDevices",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -13303,6 +13689,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
             CgroupLimits,
             Hostname,
             BlockDevices,
+            OomScoreAdj,
+            PciDevices,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -13335,6 +13723,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
                             "cgroupLimits" | "cgroup_limits" => Ok(GeneratedField::CgroupLimits),
                             "hostname" => Ok(GeneratedField::Hostname),
                             "blockDevices" | "block_devices" => Ok(GeneratedField::BlockDevices),
+                            "oomScoreAdj" | "oom_score_adj" => Ok(GeneratedField::OomScoreAdj),
+                            "pciDevices" | "pci_devices" => Ok(GeneratedField::PciDevices),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -13365,6 +13755,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
                 let mut cgroup_limits__ = None;
                 let mut hostname__ = None;
                 let mut block_devices__ = None;
+                let mut oom_score_adj__ = None;
+                let mut pci_devices__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -13433,6 +13825,20 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
                             }
                             block_devices__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::OomScoreAdj => {
+                            if oom_score_adj__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("oomScoreAdj"));
+                            }
+                            oom_score_adj__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::PciDevices => {
+                            if pci_devices__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pciDevices"));
+                            }
+                            pci_devices__ = Some(map_.next_value()?);
+                        }
                     }
                 }
                 Ok(WorkloadSpec {
@@ -13447,6 +13853,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadSpec {
                     cgroup_limits: cgroup_limits__.unwrap_or_default(),
                     hostname: hostname__.unwrap_or_default(),
                     block_devices: block_devices__.unwrap_or_default(),
+                    oom_score_adj: oom_score_adj__,
+                    pci_devices: pci_devices__.unwrap_or_default(),
                 })
             }
         }
@@ -13571,6 +13979,9 @@ impl serde::Serialize for WorkloadStatus {
         if self.created_at.is_some() {
             len += 1;
         }
+        if self.pci_device_status.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("protect.control.v1.WorkloadStatus", len)?;
         if self.state != 0 {
             let v = WorkloadState::try_from(self.state)
@@ -13591,6 +14002,9 @@ impl serde::Serialize for WorkloadStatus {
         }
         if let Some(v) = self.created_at.as_ref() {
             struct_ser.serialize_field("createdAt", v)?;
+        }
+        if let Some(v) = self.pci_device_status.as_ref() {
+            struct_ser.serialize_field("pciDeviceStatus", v)?;
         }
         struct_ser.end()
     }
@@ -13613,6 +14027,8 @@ impl<'de> serde::Deserialize<'de> for WorkloadStatus {
             "mountStatus",
             "created_at",
             "createdAt",
+            "pci_device_status",
+            "pciDeviceStatus",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -13623,6 +14039,7 @@ impl<'de> serde::Deserialize<'de> for WorkloadStatus {
             BlockDeviceStatus,
             MountStatus,
             CreatedAt,
+            PciDeviceStatus,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -13650,6 +14067,7 @@ impl<'de> serde::Deserialize<'de> for WorkloadStatus {
                             "blockDeviceStatus" | "block_device_status" => Ok(GeneratedField::BlockDeviceStatus),
                             "mountStatus" | "mount_status" => Ok(GeneratedField::MountStatus),
                             "createdAt" | "created_at" => Ok(GeneratedField::CreatedAt),
+                            "pciDeviceStatus" | "pci_device_status" => Ok(GeneratedField::PciDeviceStatus),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -13675,6 +14093,7 @@ impl<'de> serde::Deserialize<'de> for WorkloadStatus {
                 let mut block_device_status__ = None;
                 let mut mount_status__ = None;
                 let mut created_at__ = None;
+                let mut pci_device_status__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::State => {
@@ -13713,6 +14132,12 @@ impl<'de> serde::Deserialize<'de> for WorkloadStatus {
                             }
                             created_at__ = map_.next_value()?;
                         }
+                        GeneratedField::PciDeviceStatus => {
+                            if pci_device_status__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pciDeviceStatus"));
+                            }
+                            pci_device_status__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(WorkloadStatus {
@@ -13722,6 +14147,7 @@ impl<'de> serde::Deserialize<'de> for WorkloadStatus {
                     block_device_status: block_device_status__,
                     mount_status: mount_status__,
                     created_at: created_at__,
+                    pci_device_status: pci_device_status__,
                 })
             }
         }
@@ -20731,7 +21157,6 @@ impl serde::Serialize for ZoneState {
             Self::Creating => "ZONE_STATE_CREATING",
             Self::Created => "ZONE_STATE_CREATED",
             Self::Ready => "ZONE_STATE_READY",
-            Self::Exited => "ZONE_STATE_EXITED",
             Self::Destroying => "ZONE_STATE_DESTROYING",
             Self::Destroyed => "ZONE_STATE_DESTROYED",
             Self::Failed => "ZONE_STATE_FAILED",
@@ -20750,7 +21175,6 @@ impl<'de> serde::Deserialize<'de> for ZoneState {
             "ZONE_STATE_CREATING",
             "ZONE_STATE_CREATED",
             "ZONE_STATE_READY",
-            "ZONE_STATE_EXITED",
             "ZONE_STATE_DESTROYING",
             "ZONE_STATE_DESTROYED",
             "ZONE_STATE_FAILED",
@@ -20798,7 +21222,6 @@ impl<'de> serde::Deserialize<'de> for ZoneState {
                     "ZONE_STATE_CREATING" => Ok(ZoneState::Creating),
                     "ZONE_STATE_CREATED" => Ok(ZoneState::Created),
                     "ZONE_STATE_READY" => Ok(ZoneState::Ready),
-                    "ZONE_STATE_EXITED" => Ok(ZoneState::Exited),
                     "ZONE_STATE_DESTROYING" => Ok(ZoneState::Destroying),
                     "ZONE_STATE_DESTROYED" => Ok(ZoneState::Destroyed),
                     "ZONE_STATE_FAILED" => Ok(ZoneState::Failed),

@@ -154,6 +154,8 @@ pub struct ProcessSpec {
     pub stdout: bool,
     #[prost(bool, tag="10")]
     pub stderr: bool,
+    #[prost(int64, repeated, tag="13")]
+    pub additional_gids: ::prost::alloc::vec::Vec<i64>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct MountSpec {
@@ -189,6 +191,11 @@ pub struct WorkloadBlockDeviceSpec {
     pub device_path: ::prost::alloc::string::String,
     #[prost(message, optional, tag="3")]
     pub mount_options: ::core::option::Option<BlockDeviceMountOptions>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct WorkloadPciDeviceSpec {
+    #[prost(string, tag="1")]
+    pub location: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct BlockDeviceMountOptions {
@@ -401,6 +408,10 @@ pub struct WorkloadSpec {
     pub hostname: ::prost::alloc::string::String,
     #[prost(message, repeated, tag="11")]
     pub block_devices: ::prost::alloc::vec::Vec<WorkloadBlockDeviceSpec>,
+    #[prost(int32, optional, tag="12")]
+    pub oom_score_adj: ::core::option::Option<i32>,
+    #[prost(message, repeated, tag="13")]
+    pub pci_devices: ::prost::alloc::vec::Vec<WorkloadPciDeviceSpec>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct CgroupLimit {
@@ -449,6 +460,8 @@ pub struct WorkloadStatus {
     pub mount_status: ::core::option::Option<WorkloadMountStatus>,
     #[prost(message, optional, tag="6")]
     pub created_at: ::core::option::Option<::pbjson_types::Timestamp>,
+    #[prost(message, optional, tag="7")]
+    pub pci_device_status: ::core::option::Option<WorkloadPciDeviceStatus>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct WorkloadBlockDeviceInfo {
@@ -461,10 +474,20 @@ pub struct WorkloadBlockDeviceInfo {
     #[prost(bool, tag="5")]
     pub loop_dev: bool,
 }
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct WorkloadPciDeviceInfo {
+    #[prost(string, tag="1")]
+    pub location: ::prost::alloc::string::String,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WorkloadBlockDeviceStatus {
     #[prost(message, repeated, tag="1")]
     pub devices: ::prost::alloc::vec::Vec<WorkloadBlockDeviceInfo>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkloadPciDeviceStatus {
+    #[prost(message, repeated, tag="1")]
+    pub devices: ::prost::alloc::vec::Vec<WorkloadPciDeviceInfo>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct WorkloadMountInfo {
@@ -828,7 +851,6 @@ pub enum ZoneState {
     Creating = 1,
     Created = 2,
     Ready = 3,
-    Exited = 4,
     Destroying = 5,
     Destroyed = 6,
     Failed = 7,
@@ -844,7 +866,6 @@ impl ZoneState {
             Self::Creating => "ZONE_STATE_CREATING",
             Self::Created => "ZONE_STATE_CREATED",
             Self::Ready => "ZONE_STATE_READY",
-            Self::Exited => "ZONE_STATE_EXITED",
             Self::Destroying => "ZONE_STATE_DESTROYING",
             Self::Destroyed => "ZONE_STATE_DESTROYED",
             Self::Failed => "ZONE_STATE_FAILED",
@@ -857,7 +878,6 @@ impl ZoneState {
             "ZONE_STATE_CREATING" => Some(Self::Creating),
             "ZONE_STATE_CREATED" => Some(Self::Created),
             "ZONE_STATE_READY" => Some(Self::Ready),
-            "ZONE_STATE_EXITED" => Some(Self::Exited),
             "ZONE_STATE_DESTROYING" => Some(Self::Destroying),
             "ZONE_STATE_DESTROYED" => Some(Self::Destroyed),
             "ZONE_STATE_FAILED" => Some(Self::Failed),
@@ -1206,6 +1226,14 @@ pub struct GetHostStatusReply {
     pub host_mac: ::prost::alloc::string::String,
     #[prost(uint64, optional, tag="7")]
     pub hyp_free_mem: ::core::option::Option<u64>,
+    #[prost(string, optional, tag="8")]
+    pub protect_git_sha: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag="9")]
+    pub protect_last_tag: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(uint64, optional, tag="10")]
+    pub protect_revs_since_tag: ::core::option::Option<u64>,
+    #[prost(string, optional, tag="11")]
+    pub protect_branch: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateZoneRequest {
