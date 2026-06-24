@@ -5,7 +5,9 @@ RUN apt-get update && apt-get --assume-yes install protobuf-compiler git clang c
 
 WORKDIR /usr/src/app
 COPY . .
-RUN cargo build --release
+# cargo-auditable embeds the resolved dependency tree into the .so (readable by syft)
+RUN cargo install cargo-auditable --version 0.6.7 --locked
+RUN cargo auditable build --release
 RUN mkdir -p /var/lib/edera/protect/falco
 RUN mv ./target/release/libedera_falco_plugin.so /var/lib/edera/protect/falco/
 
