@@ -3,10 +3,6 @@ name: Release falco_plugin (OCI)
 on:
   release:
     types: [published]
-  workflow_dispatch:
-  # TODO: remove after testing
-  push:
-    branches: ["asher/sbom"]
 
 permissions:
   contents: read # Default token to read
