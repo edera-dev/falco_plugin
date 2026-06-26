@@ -3,6 +3,9 @@ name: Release falco_plugin (OCI)
 on:
   release:
     types: [published]
+  workflow_dispatch:
+  push:
+    branches: ["asher/sbom"] # remove after testing
 
 permissions:
   contents: read # Default token to read
@@ -88,3 +91,47 @@ jobs:
         env:
           DIGEST: '${{ steps.push.outputs.digest }}'
           COSIGN_EXPERIMENTAL: 'true'
+
+      - name: install syft
+        if: github.event_name != 'pull_request'
+        uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610
+        id: syft
+
+      - name: generate and attest CycloneDX SBOM
+        if: github.event_name != 'pull_request'
+        shell: bash
+        env:
+          DIGEST: '${{ steps.push.outputs.digest }}'
+          IMAGE: '${{ steps.meta.outputs.full-image-name }}'
+          SYFT_CMD: '${{ steps.syft.outputs.cmd }}'
+          COMPONENT: edera_falco_plugin
+        run: |
+          set -euo pipefail
+          ref="${IMAGE}@${DIGEST}"
+          version="${GITHUB_SHA::7}"
+
+          pairs=()
+          for plat in linux/amd64 linux/arm64; do
+            out="${COMPONENT}.${plat##*/}.cdx.json"
+            echo "scanning ${plat}"
+            "${SYFT_CMD}" "registry:${ref}" \
+              --platform "${plat}" \
+              --select-catalogers "-file" \
+              -o "cyclonedx-json=${out}"
+            n="$(jq '(.components // []) | length' "${out}")"
+            echo "  ${plat}: ${n} components"
+            [ "${n}" -gt 0 ] || { echo "::error::no SBOM components for ${plat}"; exit 1; }
+            pairs+=("${plat}=${out}")
+          done
+
+          python3 merge-cdx.py "${COMPONENT}.cdx.json" "${COMPONENT}" "${version}" "${pairs[@]}"
+
+          jq -e '.bomFormat == "CycloneDX" and ((.components // []) | length > 0)' \
+            "${COMPONENT}.cdx.json" >/dev/null \
+            || { echo "::error::SBOM for ${COMPONENT} is empty or invalid"; exit 1; }
+          jq '{component: env.COMPONENT, components: (.components | length)}' \
+            "${COMPONENT}.cdx.json"
+
+          cosign attest --yes --type cyclonedx \
+            --predicate "${COMPONENT}.cdx.json" \
+            "${ref}"
