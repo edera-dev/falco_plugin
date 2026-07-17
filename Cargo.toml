@@ -24,12 +24,12 @@ exclude = [
 # to produce usable `.so` binaries.
 #
 # See: https://github.com/rust-lang/rust/issues/59302 for details.
-# 
+#
 # RUSTFLAGS="-C target-feature=-crt-static" is a bad workaround,
 # because when used with a musl target it not only results in
 # a non-loadable plugin binary, it applies to the other crates
 # in the workspace as well, which we do not want.
-# 
+#
 # To hack around this for dev builds, we specify multiple crate types:
 # `rlib` and `cdylib`. If you specify just `cdylib`, `musl` target builds
 # will error out. If you specify both types, then `musl` target builds will
@@ -41,7 +41,7 @@ crate-type = ["rlib", "cdylib"]
 anyhow = "1.0.102"
 async-stream = "0.3.6"
 aya = "0.14"
-caps = "0.5.5"
+caps = "0.5.6"
 dns-lookup = "3.0.1"
 falco_plugin = { version = "0.5.1" }
 falco_plugin_api = { version = "0.5.1" }
@@ -64,5 +64,5 @@ url = "2.5.8"
 uuid = { version = "1.23.1", features = ["v4"] }
 pbjson = "0.9.0"
 pbjson-types = "0.9.0"
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
 tonic-prost = { version = "0.14.6" }
