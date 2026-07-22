@@ -178,6 +178,15 @@ pub fn get_retval(evt: &ZoneKernelSyscallEvent) -> Option<i64> {
     }
 }
 
+/// libsinsp `evt.failed` / error-count semantics (see libsinsp
+/// `sinsp_filter_check_event::extract_error_count`): a syscall failed iff it has
+/// a return value and that value is negative. A non-negative value (including an
+/// fd or a byte count) is a success. `None` means the event carries no return
+/// value, which extracts as `<NA>`.
+pub fn syscall_failed(evt: &ZoneKernelSyscallEvent) -> Option<bool> {
+    get_retval(evt).map(|retval| retval < 0)
+}
+
 /// Extract FD number from an event.
 ///
 /// Modern BPF driver only captures exit events, so this extracts FD from exit event parameters.
@@ -369,4 +378,62 @@ pub fn lookup_service(port: u32, proto: &str) -> String {
     }
 
     format!("{}/{}", port, proto)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::proto::generated::protect::control::v1::ZoneKernelEventParam;
+
+    // Builds an exit event carrying `retval` as its first param, the way the
+    // driver reports a syscall return value: a signed 64-bit two's-complement
+    // value (negative on error). `event_type` must be an exit code.
+    fn exit_event_with_retval(event_type: event_codes, retval: i64) -> ZoneKernelSyscallEvent {
+        ZoneKernelSyscallEvent {
+            event_type: event_type as u32,
+            event_category: "EC_FILE | EC_SYSCALL".to_string(),
+            event_params: vec![ZoneKernelEventParam {
+                name: "fd".to_string(),
+                param_data: retval.to_ne_bytes().to_vec(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn successful_open_is_not_failed() {
+        // A successful open returns a positive fd, which must read as success -
+        // this is the regression the old `retval != 0` check got wrong.
+        let evt = exit_event_with_retval(event_codes::PPME_SYSCALL_OPENAT_2_X, 3);
+        assert!(has_retval(&evt));
+        assert_eq!(get_retval(&evt), Some(3));
+        assert_eq!(syscall_failed(&evt), Some(false));
+    }
+
+    #[test]
+    fn failed_open_enoent_is_failed() {
+        let evt = exit_event_with_retval(event_codes::PPME_SYSCALL_OPENAT_2_X, -2);
+        assert_eq!(get_retval(&evt), Some(-2));
+        assert_eq!(syscall_failed(&evt), Some(true));
+    }
+
+    #[test]
+    fn eagain_return_is_failed() {
+        // EAGAIN arrives as a negative return (-11), so it reads as failed, in
+        // line with libsinsp `evt.failed` (no errno is special-cased there).
+        let evt = exit_event_with_retval(event_codes::PPME_SOCKET_CONNECT_X, -11);
+        assert_eq!(get_retval(&evt), Some(-11));
+        assert_eq!(syscall_failed(&evt), Some(true));
+    }
+
+    #[test]
+    fn enter_event_has_no_retval() {
+        // Enter events carry no return value; failure extracts as <NA> (None).
+        let evt = exit_event_with_retval(event_codes::PPME_SYSCALL_OPENAT_2_E, 0);
+        assert!(is_enter(&evt));
+        assert!(!has_retval(&evt));
+        assert_eq!(get_retval(&evt), None);
+        assert_eq!(syscall_failed(&evt), None);
+    }
 }
