@@ -2089,6 +2089,12 @@ impl ZoneInfo {
     }
 
     fn parse_chdir_exit(&mut self, event: &ZoneKernelSyscallEvent) -> Result<()> {
+        // if syscall failed, just bail, we didn't actually change the cwd
+        if parsers::get_retval(event).filter(|&v| v >= 0).is_none() {
+            debug!("no success retval found for chdir event: {:?}", event);
+            return Ok(());
+        };
+
         // if we have a thread for this event, update the cwd of that thread, otherwise NBD
         self.with_mut_threadinfo_ctx(event, |tinfo| {
             tinfo.cwd = event.event_params[1].param_pretty.clone(); // pretty version is already a string
@@ -2449,8 +2455,9 @@ impl ZoneInfo {
             ExecTime {
                 last_switch_ts: event.timestamp,
                 previous_switch_ts: exectime.last_switch_ts,
-                cumulative_switch_time: exectime.cumulative_switch_time
-                    + (event.timestamp - exectime.last_switch_ts),
+                cumulative_switch_time: exectime
+                    .cumulative_switch_time
+                    .saturating_add(event.timestamp.saturating_sub(exectime.last_switch_ts)),
             },
         );
 

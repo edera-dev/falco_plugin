@@ -21,53 +21,83 @@ const FLAGS_SOCKET_CONNECTED: u32 = 1 << 13;
 const FLAGS_OVERLAY_UPPER: u32 = 1 << 17;
 const FLAGS_OVERLAY_LOWER: u32 = 1 << 18;
 
-#[derive(PartialEq)]
-pub enum OpenType {
-    Read,
-    Write,
-    Exec,
-    Create,
+// Open access/create/exec classification mirrors libsinsp
+// `evt.is_open_read/write/exec/create`.
+const OPEN_EXEC_MODE_MASK: u32 =
+    ppm_consts::PPM_S_IXUSR | ppm_consts::PPM_S_IXGRP | ppm_consts::PPM_S_IXOTH;
+
+fn read_u32_param(evt: &ZoneKernelSyscallEvent, idx: usize) -> Option<u32> {
+    let param = evt.event_params.get(idx)?;
+    Some(u32::from_ne_bytes(
+        param.param_data.as_slice().try_into().ok()?,
+    ))
 }
 
-pub fn get_openstate(evt: &ZoneKernelSyscallEvent) -> Result<OpenType> {
-    // strum from discriminant to make this simpler
-    let etype =
-        event_codes::from_repr(evt.event_type).ok_or(anyhow!("could not parse event type"))?;
+/// Normalized open flags for an open-family exit event (the `flags` param), or
+/// `None` if this isn't such an event or the param is absent/malformed. The
+/// modern openat variants carry flags at arg 3, the legacy forms at arg 2.
+fn open_flags(evt: &ZoneKernelSyscallEvent, etype: event_codes) -> Option<u32> {
+    let idx = match etype {
+        event_codes::PPME_SYSCALL_OPENAT_2_X | event_codes::PPME_SYSCALL_OPENAT2_X => 3,
+        event_codes::PPME_SYSCALL_OPEN_X | event_codes::PPME_SYSCALL_OPEN_BY_HANDLE_AT_X => 2,
+        _ => return None,
+    };
+    read_u32_param(evt, idx)
+}
 
-    if is_open_file(etype) {
-        let is_new_version = etype == event_codes::PPME_SYSCALL_OPENAT_2_X
-            || etype == event_codes::PPME_SYSCALL_OPENAT2_X;
-        // new versions have open flags at arg 3 insted of arg 2
-        let flags = if is_new_version {
-            u32::from_ne_bytes(evt.event_params[3].param_data.as_slice().try_into()?)
-        } else {
-            u32::from_ne_bytes(evt.event_params[2].param_data.as_slice().try_into()?)
-        };
+pub fn is_open_read(evt: &ZoneKernelSyscallEvent) -> bool {
+    let Some(etype) = event_codes::from_repr(evt.event_type) else {
+        return false;
+    };
+    open_flags(evt, etype).is_some_and(|flags| (flags & ppm_consts::PPM_O_RDONLY) != 0)
+}
 
-        if (flags & ppm_consts::PPM_O_RDONLY) != 0 {
-            return Ok(OpenType::Read);
-        } else if (flags & ppm_consts::PPM_O_WRONLY) != 0 {
-            return Ok(OpenType::Write);
-        } else if (flags & ppm_consts::PPM_O_F_CREATED) != 0 {
-            return Ok(OpenType::Create);
-        } else if (flags & (ppm_consts::PPM_O_TMPFILE | ppm_consts::PPM_O_CREAT)) != 0
-            && etype != event_codes::PPME_SYSCALL_OPEN_BY_HANDLE_AT_X
-        {
-            let mode_bits = if is_new_version {
-                u32::from_ne_bytes(evt.event_params[4].param_data.as_slice().try_into()?)
-            } else {
-                u32::from_ne_bytes(evt.event_params[3].param_data.as_slice().try_into()?)
+pub fn is_open_write(evt: &ZoneKernelSyscallEvent) -> bool {
+    let Some(etype) = event_codes::from_repr(evt.event_type) else {
+        return false;
+    };
+    open_flags(evt, etype).is_some_and(|flags| (flags & ppm_consts::PPM_O_WRONLY) != 0)
+}
+
+pub fn is_open_create(evt: &ZoneKernelSyscallEvent) -> bool {
+    let Some(etype) = event_codes::from_repr(evt.event_type) else {
+        return false;
+    };
+    let Some(flags) = open_flags(evt, etype) else {
+        return false;
+    };
+    // O_F_CREATED means the file was created; O_TMPFILE creates one only on success.
+    (flags & ppm_consts::PPM_O_F_CREATED) != 0
+        || ((flags & ppm_consts::PPM_O_TMPFILE) != 0 && get_retval(evt).is_some_and(|r| r >= 0))
+}
+
+pub fn is_open_exec(evt: &ZoneKernelSyscallEvent) -> bool {
+    let Some(etype) = event_codes::from_repr(evt.event_type) else {
+        return false;
+    };
+    // `creat` carries mode at arg 2; open-family carries it at arg 3 (legacy) or
+    // arg 4 (modern), and only counts as exec when the open can create the file.
+    // open_by_handle_at has no mode param and is excluded, as in libsinsp.
+    let mode_idx = match etype {
+        event_codes::PPME_SYSCALL_CREAT_X => 2,
+        event_codes::PPME_SYSCALL_OPEN_X
+        | event_codes::PPME_SYSCALL_OPENAT_2_X
+        | event_codes::PPME_SYSCALL_OPENAT2_X => {
+            let Some(flags) = open_flags(evt, etype) else {
+                return false;
             };
-            if (mode_bits
-                & (ppm_consts::PPM_S_IXUSR | ppm_consts::PPM_S_IXGRP | ppm_consts::PPM_S_IXOTH))
-                != 0
-            {
-                return Ok(OpenType::Exec);
+            if (flags & (ppm_consts::PPM_O_TMPFILE | ppm_consts::PPM_O_CREAT)) == 0 {
+                return false;
+            }
+            if etype == event_codes::PPME_SYSCALL_OPEN_X {
+                3
+            } else {
+                4
             }
         }
-    }
-
-    Err(anyhow!("not an open event"))
+        _ => return false,
+    };
+    read_u32_param(evt, mode_idx).is_some_and(|mode| (mode & OPEN_EXEC_MODE_MASK) != 0)
 }
 
 pub fn is_enter(evt: &ZoneKernelSyscallEvent) -> bool {
@@ -435,5 +465,70 @@ mod tests {
         assert!(!has_retval(&evt));
         assert_eq!(get_retval(&evt), None);
         assert_eq!(syscall_failed(&evt), None);
+    }
+
+    // constructs a modern openat exit event: params are [fd, dirfd, name, flags, mode].
+    // fd=3 (success) so the O_TMPFILE create path is satisfied when exercised.
+    fn openat2x_event(flags: u32, mode: u32) -> ZoneKernelSyscallEvent {
+        let u32_param = |v: u32| ZoneKernelEventParam {
+            param_data: v.to_ne_bytes().to_vec(),
+            ..Default::default()
+        };
+        ZoneKernelSyscallEvent {
+            event_type: event_codes::PPME_SYSCALL_OPENAT_2_X as u32,
+            event_category: "EC_FILE | EC_SYSCALL".to_string(),
+            event_params: vec![
+                u32_param(3),
+                u32_param(0),
+                u32_param(0),
+                u32_param(flags),
+                u32_param(mode),
+            ],
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn rdonly_open_is_read_only() {
+        let evt = openat2x_event(ppm_consts::PPM_O_RDONLY, 0);
+        assert!(is_open_read(&evt));
+        assert!(!is_open_write(&evt));
+    }
+
+    #[test]
+    fn wronly_open_is_write_only() {
+        let evt = openat2x_event(ppm_consts::PPM_O_WRONLY, 0);
+        assert!(!is_open_read(&evt));
+        assert!(is_open_write(&evt));
+    }
+
+    #[test]
+    fn rdwr_open_is_both_read_and_write() {
+        let evt = openat2x_event(ppm_consts::PPM_O_RDWR, 0);
+        assert!(is_open_read(&evt));
+        assert!(is_open_write(&evt));
+    }
+
+    #[test]
+    fn created_flag_is_create_independent_of_access_mode() {
+        let evt = openat2x_event(ppm_consts::PPM_O_WRONLY | ppm_consts::PPM_O_F_CREATED, 0);
+        assert!(is_open_create(&evt));
+        assert!(is_open_write(&evt));
+    }
+
+    #[test]
+    fn creating_open_with_exec_mode_is_exec() {
+        let evt = openat2x_event(
+            ppm_consts::PPM_O_WRONLY | ppm_consts::PPM_O_CREAT,
+            ppm_consts::PPM_S_IXUSR,
+        );
+        assert!(is_open_exec(&evt));
+    }
+
+    #[test]
+    fn plain_read_open_is_neither_create_nor_exec() {
+        let evt = openat2x_event(ppm_consts::PPM_O_RDONLY, 0);
+        assert!(!is_open_create(&evt));
+        assert!(!is_open_exec(&evt));
     }
 }
