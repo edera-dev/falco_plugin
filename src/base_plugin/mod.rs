@@ -32,6 +32,16 @@ const STDIN_FD: u64 = 0;
 const STDOUT_FD: u64 = 1;
 const STDERR_FD: u64 = 2;
 
+/// Build a CString from a zone-provided String, truncating at the first interior
+/// NUL (C-string semantics), so conversion always truncates instead of panicking.
+fn cstring_lossy(s: impl Into<Vec<u8>>) -> CString {
+    let mut bytes = s.into();
+    bytes.push(0); // guarantee a terminator so from_bytes_until_nul always succeeds
+    CStr::from_bytes_until_nul(&bytes)
+        .expect("terminator was just appended")
+        .to_owned()
+}
+
 // TODO(bml) we do not need a thread table entry now.
 // but we will for the container plugin. Defer until then.
 
@@ -126,13 +136,13 @@ pub struct EderaZoneSyscallContext {
 impl EderaPlugin {
     pub fn extract_zone_id(&mut self, mut req: ExtractRequest<Self>) -> Result<CString> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            Ok(CString::new(zone_evt.zone_id.clone()).expect("should cstring"))
+            Ok(cstring_lossy(zone_evt.zone_id.clone()))
         })
     }
 
     pub fn extract_type(&mut self, mut req: ExtractRequest<Self>) -> Result<CString> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            Ok(CString::new(zone_evt.event_name.clone()).expect("should cstring"))
+            Ok(cstring_lossy(zone_evt.event_name.clone()))
         })
     }
 
@@ -144,7 +154,7 @@ impl EderaPlugin {
 
     pub fn extract_category(&mut self, mut req: ExtractRequest<Self>) -> Result<CString> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            Ok(CString::new(zone_evt.event_category.clone()).expect("should cstring"))
+            Ok(cstring_lossy(zone_evt.event_category.clone()))
         })
     }
 
@@ -190,14 +200,14 @@ impl EderaPlugin {
                 );
                 concat_str.push_str("| ");
             }
-            Ok(CString::new(concat_str).expect("should cstring"))
+            Ok(cstring_lossy(concat_str))
         })
     }
 
     pub fn extract_arg(&mut self, mut req: ExtractRequest<Self>, arg: u64) -> Result<CString> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
             if let Some(param) = zone_evt.event_params.get(arg as usize) {
-                Ok(CString::new(param.param_pretty.clone()).expect("should cstring"))
+                Ok(cstring_lossy(param.param_pretty.clone()))
             } else {
                 Ok(CString::new("").unwrap())
             }
@@ -349,8 +359,7 @@ impl EderaPlugin {
     pub fn extract_count_error_file(&mut self, mut req: ExtractRequest<Self>) -> Result<u64> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
             let etype = event_codes::from_repr(zone_evt.event_type)
-                .ok_or(anyhow!("could not parse event type"))
-                .expect("should parse");
+                .ok_or_else(|| anyhow!("could not parse event type"))?;
             if parsers::is_open_file(etype) || etype == event_codes::PPME_SYSCALL_CREAT_X {
                 Self::get_count_error(zone_evt)
             } else {
@@ -365,8 +374,7 @@ impl EderaPlugin {
     pub fn extract_count_error_net(&mut self, mut req: ExtractRequest<Self>) -> Result<u64> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
             let etype = event_codes::from_repr(zone_evt.event_type)
-                .ok_or(anyhow!("could not parse event type"))
-                .expect("should parse");
+                .ok_or_else(|| anyhow!("could not parse event type"))?;
             if parsers::is_open_net(etype) {
                 Self::get_count_error(zone_evt)
             } else {
@@ -389,8 +397,7 @@ impl EderaPlugin {
     pub fn extract_count_error_other(&mut self, mut req: ExtractRequest<Self>) -> Result<u64> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
             let etype = event_codes::from_repr(zone_evt.event_type)
-                .ok_or(anyhow!("could not parse event type"))
-                .expect("should parse");
+                .ok_or_else(|| anyhow!("could not parse event type"))?;
             if !parsers::is_open_file(etype)
                 && !parsers::is_open_net(etype)
                 && !zone_evt.event_category.contains("MEMORY")
@@ -2661,9 +2668,9 @@ impl EderaPlugin {
     }
 
     fn l4proto_to_string(l4proto: u32) -> String {
-        let proto = l4_types::from_repr(l4proto)
-            .ok_or(anyhow!("could not parse proto type"))
-            .expect("should parse");
+        let Some(proto) = l4_types::from_repr(l4proto) else {
+            return "NA".to_string();
+        };
         match proto {
             l4_types::SCAP_L4_TCP => "tcp".into(),
             l4_types::SCAP_L4_UDP => "udp".into(),
@@ -2711,9 +2718,9 @@ impl EderaPlugin {
 
     pub fn extract_raw_fdname_from_event(event: &ZoneKernelSyscallEvent) -> String {
         use event_codes::*;
-        let etype = event_codes::from_repr(event.event_type)
-            .ok_or(anyhow!("could not parse event type"))
-            .expect("should parse");
+        let Some(etype) = event_codes::from_repr(event.event_type) else {
+            return "NA".to_string();
+        };
 
         if parsers::is_enter(event) {
             return "NA".into();
@@ -2791,9 +2798,9 @@ impl EderaPlugin {
     fn get_paths_from_evt_params(event: &ZoneKernelSyscallEvent) -> Vec<EventPathType> {
         let mut paths = Vec::new();
         use event_codes::*;
-        let etype = event_codes::from_repr(event.event_type)
-            .ok_or(anyhow!("could not parse event type"))
-            .expect("should parse");
+        let Some(etype) = event_codes::from_repr(event.event_type) else {
+            return paths;
+        };
         match etype {
             // Single path operations
             PPME_SYSCALL_MKDIR_2_X => {
@@ -2946,9 +2953,9 @@ impl EderaPlugin {
     fn get_fdlist_from_poll_evt(event: &ZoneKernelSyscallEvent) -> Vec<u64> {
         let mut poll_fds = Vec::new();
         use event_codes::*;
-        let etype = event_codes::from_repr(event.event_type)
-            .ok_or(anyhow!("could not parse event type"))
-            .expect("should parse");
+        let Some(etype) = event_codes::from_repr(event.event_type) else {
+            return poll_fds;
+        };
         let fddata = match etype {
             PPME_SYSCALL_PPOLL_E => event.event_params[0].param_data.clone(),
             PPME_SYSCALL_PPOLL_X => event.event_params[1].param_data.clone(),
@@ -3090,5 +3097,15 @@ mod tests {
             })
             .collect();
         assert_eq!(paths, vec!["/opt/host-canary".to_string()]);
+    }
+
+    #[test]
+    fn cstring_lossy_truncates_at_interior_nul() {
+        // An interior NUL in a wire string must not panic.
+        assert_eq!(
+            cstring_lossy("execve\0evil".to_string()).to_bytes(),
+            b"execve"
+        );
+        assert_eq!(cstring_lossy("clean".to_string()).to_bytes(), b"clean");
     }
 }

@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use libc::{
     AF_INET, AF_INET6, IPPROTO_ICMP, IPPROTO_IP, IPPROTO_RAW, IPPROTO_TCP, IPPROTO_UDP, SOCK_DGRAM,
     SOCK_RAW, SOCK_STREAM,
@@ -3190,9 +3190,10 @@ impl ThreadState {
     /// See `sinsp_parser::process_event` in libsinsp/parsers.cpp
     pub fn process_event(&mut self, event: &ZoneKernelSyscallEvent) -> Result<()> {
         use event_codes::*;
-        let etype = event_codes::from_repr(event.event_type)
-            .ok_or(anyhow!("could not parse event type"))
-            .expect("should parse");
+        let Some(etype) = event_codes::from_repr(event.event_type) else {
+            debug!("ignoring event with unknown type {}", event.event_type);
+            return Ok(());
+        };
 
         let Some(zinfo) = self.zone_info.get_mut(&event.zone_id) else {
             debug!("ignoring event for unmonitored zone {:?}", &event.zone_id);
