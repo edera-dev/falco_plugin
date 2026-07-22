@@ -2,7 +2,7 @@ use crate::proto::generated::protect::control::v1::ZoneKernelFdInfo;
 use crate::proto::generated::protect::control::v1::{
     ZoneKernelSyscallEvent, ZoneKernelThreadInfo, zone_kernel_fd_info_data::InfoType,
 };
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use libscap_bindings::consts as ppm_consts;
 use libscap_bindings::types::{
     ppm_event_code as event_codes, ppm_event_flags as event_flags, ppm_param_type as param_type,
@@ -228,9 +228,7 @@ pub fn get_fdi(event: &ZoneKernelSyscallEvent) -> Option<u64> {
         return None;
     }
 
-    let etype = event_codes::from_repr(event.event_type)
-        .ok_or(anyhow!("could not parse event type"))
-        .expect("should parse");
+    let etype = event_codes::from_repr(event.event_type)?;
 
     // For exit events (modern_bpf only captures these), search for the FD parameter
     // Special case: sendmmsg and recvmmsg have FD at position 1
@@ -530,5 +528,18 @@ mod tests {
         let evt = openat2x_event(ppm_consts::PPM_O_RDONLY, 0);
         assert!(!is_open_create(&evt));
         assert!(!is_open_exec(&evt));
+    }
+
+    #[test]
+    fn get_fdi_unknown_event_type_does_not_panic() {
+        // A malicious zone can send an arbitrary event_type, so classification must
+        // return None rather than panic.
+        let evt = ZoneKernelSyscallEvent {
+            event_type: 0xDEAD_BEEF,
+            event_flags: event_flags::EF_USES_FD as u32,
+            ..Default::default()
+        };
+        assert!(has_fd(&evt));
+        assert_eq!(get_fdi(&evt), None);
     }
 }
