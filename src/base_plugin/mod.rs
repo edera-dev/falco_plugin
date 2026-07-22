@@ -319,39 +319,19 @@ impl EderaPlugin {
     }
 
     pub fn extract_is_open_read(&mut self, mut req: ExtractRequest<Self>) -> Result<bool> {
-        self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            if let Ok(res) = parsers::get_openstate(zone_evt) {
-                return Ok(res == parsers::OpenType::Read);
-            }
-            Ok(false)
-        })
+        self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| Ok(parsers::is_open_read(zone_evt)))
     }
 
     pub fn extract_is_open_write(&mut self, mut req: ExtractRequest<Self>) -> Result<bool> {
-        self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            if let Ok(res) = parsers::get_openstate(zone_evt) {
-                return Ok(res == parsers::OpenType::Write);
-            }
-            Ok(false)
-        })
+        self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| Ok(parsers::is_open_write(zone_evt)))
     }
 
     pub fn extract_is_open_exec(&mut self, mut req: ExtractRequest<Self>) -> Result<bool> {
-        self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            if let Ok(res) = parsers::get_openstate(zone_evt) {
-                return Ok(res == parsers::OpenType::Exec);
-            }
-            Ok(false)
-        })
+        self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| Ok(parsers::is_open_exec(zone_evt)))
     }
 
     pub fn extract_is_open_create(&mut self, mut req: ExtractRequest<Self>) -> Result<bool> {
-        self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            if let Ok(res) = parsers::get_openstate(zone_evt) {
-                return Ok(res == parsers::OpenType::Create);
-            }
-            Ok(false)
-        })
+        self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| Ok(parsers::is_open_create(zone_evt)))
     }
 
     pub fn extract_count(&mut self, _: ExtractRequest<Self>) -> Result<u64> {
@@ -935,7 +915,7 @@ impl EderaPlugin {
                 self.threadstate
                     .with_threadinfo(&evt.zone_id, &evt.thread_id, |tinfo| {
                         if tinfo.clone_ts != 0 {
-                            Some(evt.timestamp - tinfo.clone_ts)
+                            Some(evt.timestamp.saturating_sub(tinfo.clone_ts))
                         } else {
                             None
                         }
@@ -1154,7 +1134,11 @@ impl EderaPlugin {
                         if evt.event_type == event_codes::PPME_SCHEDSWITCH_1_E as u32
                             || evt.event_type == event_codes::PPME_SCHEDSWITCH_6_E as u32
                         {
-                            Some(exec_time.last_switch_ts - exec_time.previous_switch_ts)
+                            Some(
+                                exec_time
+                                    .last_switch_ts
+                                    .saturating_sub(exec_time.previous_switch_ts),
+                            )
                         } else {
                             // TODO(bml) libsinsp only reports this for explicit switch events,
                             // we could actually do better, but for now maintain strict compat
@@ -1207,12 +1191,12 @@ impl EderaPlugin {
                     .filter(|s| !s.is_empty())
                     .find_map(|entry| {
                         // Each entry is "subsystem=path"
-                        if let Some((name, path)) = entry.split_once('=')
-                            && (name == subsystem || name == format!("{}_cgroup", subsystem))
-                        {
-                            CString::new(path.to_string()).ok();
+                        let (name, path) = entry.split_once('=')?;
+                        if name == subsystem || name == format!("{}_cgroup", subsystem) {
+                            CString::new(path.to_string()).ok()
+                        } else {
+                            None
                         }
-                        None
                     })
             })
             .unwrap_or(CString::new("NA").expect("default value must parse")))
@@ -2422,7 +2406,7 @@ impl EderaPlugin {
             .and_then(|evt| {
                 self.with_nth_parent_proc_thread(&evt.zone_id, &evt.thread_id, 1, |atinfo| {
                     if atinfo.clone_ts != 0 {
-                        Some(evt.timestamp - atinfo.clone_ts)
+                        Some(evt.timestamp.saturating_sub(atinfo.clone_ts))
                     } else {
                         None
                     }
