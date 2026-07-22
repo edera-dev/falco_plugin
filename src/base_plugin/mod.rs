@@ -28,10 +28,6 @@ use crate::{parsers, threadstate};
 
 // a handful of libsinsp/libscap consts
 // duplicated here
-const SE_EINPROGRESS: i64 = 115;
-const SE_ETIMEOUT: i64 = 110;
-const SE_EAGAIN: i64 = 11;
-
 const STDIN_FD: u64 = 0;
 const STDOUT_FD: u64 = 1;
 const STDERR_FD: u64 = 2;
@@ -219,44 +215,34 @@ impl EderaPlugin {
         })
     }
 
-    /// distinct from `error` in that not all syscall errors indicate true failure & etc
+    /// Mirrors libsinsp `evt.failed` (which routes through the same
+    /// `extract_error_count` as `evt.count.error`): a syscall failed iff it has
+    /// a return value and that value is negative. A non-negative value
+    /// (including an fd or a byte count) is a success. `<NA>` when there's no
+    /// return value.
     pub fn extract_failed(&mut self, mut req: ExtractRequest<Self>) -> Result<bool> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            if parsers::has_retval(zone_evt) {
-                // The return value is always the first parameter of the syscall event
-                // It could have different names depending on the event type `res`,`fd`, etc.
-                let retval =
-                    i64::from_ne_bytes(zone_evt.event_params[0].param_data.as_slice().try_into()?);
-                if (retval != 0)
-                    && (retval != SE_EINPROGRESS)
-                    && (retval != SE_EAGAIN)
-                    && (retval != SE_ETIMEOUT)
-                {
-                    Ok(true)
-                } else {
-                    Ok(false)
-                }
-            } else {
-                Err(anyhow!("event should have return code, but none found!"))
-            }
+            parsers::syscall_failed(zone_evt)
+                .ok_or_else(|| anyhow!("event should have return code, but none found!"))
         })
     }
 
     pub fn extract_retval_str(&mut self, mut req: ExtractRequest<Self>) -> Result<CString> {
         self.with_zone_syscall_evt_ctx(&mut req, |zone_evt| {
-            if parsers::has_retval(zone_evt) {
-                // The return value is always the first parameter of the syscall event
-                // It could have different names depending on the event type `res`,`fd`, etc.
-                let retval =
-                    i64::from_ne_bytes(zone_evt.event_params[0].param_data.as_slice().try_into()?);
-                if retval >= 0 {
-                    Ok(CString::new("SUCCESS").expect("should cstring"))
-                } else {
-                    Ok(CString::new(zone_evt.event_params[0].param_pretty.clone())
-                        .expect("should cstring"))
-                }
+            let Some(retval) = parsers::get_retval(zone_evt) else {
+                return Err(anyhow!("event should have return code, but none found!"));
+            };
+            if retval >= 0 {
+                Ok(CString::new("SUCCESS").expect("should cstring"))
             } else {
-                Err(anyhow!("event should have return code, but none found!"))
+                // A negative return is an errno; render its name (e.g. ENOENT),
+                // matching libsinsp `evt.res`. We can't use the param's pretty
+                // string here: the return param is typed PT_FD and decoded
+                // unsigned upstream, so a negative errno would render as a huge
+                // positive integer. `unsigned_abs` avoids an overflow panic on a
+                // wire value of i64::MIN.
+                let errno = nix::errno::Errno::from_raw(retval.unsigned_abs() as i32);
+                Ok(CString::new(format!("{errno:?}")).expect("should cstring"))
             }
         })
     }
@@ -447,12 +433,7 @@ impl EderaPlugin {
     }
 
     fn get_count_error(evt: &ZoneKernelSyscallEvent) -> Result<u64> {
-        if parsers::has_retval(evt) {
-            let retval = i64::from_ne_bytes(evt.event_params[0].param_data.as_slice().try_into()?);
-            if retval < 0 { Ok(1) } else { Ok(0) }
-        } else {
-            Ok(0)
-        }
+        Ok(parsers::syscall_failed(evt).unwrap_or(false) as u64)
     }
 
     fn with_zone_threadinfo_ctx<F, R>(&mut self, req: &mut ExtractRequest<Self>, f: F) -> Option<R>
@@ -570,11 +551,7 @@ impl EderaPlugin {
         let mut current_tid = *tid;
         let mut res: Option<ZoneKernelThreadInfo> = None;
 
-        loop {
-            let Some(thread) = self.get_main_thread(zid, &current_tid) else {
-                break;
-            };
-
+        while let Some(thread) = self.get_main_thread(zid, &current_tid) {
             if predicate(&thread) {
                 res = Some(thread.clone());
             }
@@ -586,7 +563,6 @@ impl EderaPlugin {
                 break;
             }
         }
-
         res
     }
 
@@ -3091,5 +3067,44 @@ impl EderaPlugin {
         let context = self.get_or_cache_evt_ctx(req);
 
         f(&context.decoded_evt)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::proto::generated::protect::control::v1::ZoneKernelEventParam;
+
+    fn param(name: &str, pretty: &str) -> ZoneKernelEventParam {
+        ZoneKernelEventParam {
+            name: name.to_string(),
+            param_pretty: pretty.to_string(),
+            ..Default::default()
+        }
+    }
+
+    // A failed openat still carries the attempted path in its `name` param, so
+    // `fs.path.name` can report which file a denied access targeted even though
+    // no fd was created (issue #2859, item 2).
+    #[test]
+    fn failed_openat_still_yields_path() {
+        let evt = ZoneKernelSyscallEvent {
+            event_type: event_codes::PPME_SYSCALL_OPENAT_2_X as u32,
+            event_params: vec![
+                param("fd", "-2"), // ENOENT: no fd created
+                param("dirfd", "-100"),
+                param("name", "/opt/host-canary"),
+            ],
+            ..Default::default()
+        };
+
+        let paths: Vec<String> = EderaPlugin::get_paths_from_evt_params(&evt)
+            .into_iter()
+            .filter_map(|p| match p {
+                EventPathType::Singular(s) => Some(s),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(paths, vec!["/opt/host-canary".to_string()]);
     }
 }
