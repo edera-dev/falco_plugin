@@ -78,6 +78,10 @@ impl ZoneWatcher {
                         continue;
                     }
 
+                    Ok(Event::AdvertiseService(_) | Event::UnadvertiseService(_)) => {
+                        continue;
+                    }
+
                     Err(error) => {
                         warn!("failed to receive event: {error}");
                     }

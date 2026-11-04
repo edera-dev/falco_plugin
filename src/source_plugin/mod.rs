@@ -58,6 +58,11 @@ impl EderaSourcePluginInstance {
                 match rx.try_recv() {
                     Ok(event) => {
                         match event.reply {
+                            Some(Reply::Started(started)) => {
+                                debug!("zone kernel event stream started: {started:?}");
+                            }
+                            // Only a stream that asks for the network source gets these.
+                            Some(Reply::NetworkEvents(_)) => {}
                             Some(Reply::Threadsnap(snap)) => {
                                 // We will silently *take* snapshot events here,
                                 // filtering them out of the plugin event stream at this point,

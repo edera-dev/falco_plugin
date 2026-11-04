@@ -3,10 +3,11 @@ use async_stream::stream;
 
 use crate::proto::generated::protect::control::v1::{
     MonitorZoneKernelEventReply, MonitorZoneKernelEventRequest, ZoneKernelEventStreamStop,
-    ZoneKernelEventStreamUpdate, ZoneState,
+    ZoneKernelEventStreamUpdate, ZoneKernelSyscallSource, ZoneState,
     control_service_client::ControlServiceClient,
     monitor_zone_kernel_event_request::{self as zk_req},
     watch_events_reply::Event,
+    zone_kernel_event_stream_update,
 };
 use edera_client::{client::ControlClientProvider, dial::ControlDialAddress, events::EventStream};
 
@@ -257,7 +258,11 @@ impl Client {
         let event = MonitorZoneKernelEventRequest {
             zone_id: zone_id.clone(),
             request: Some(zk_req::Request::Update(ZoneKernelEventStreamUpdate {
-                enabled_syscalls: enabled_syscalls.unwrap_or_default(),
+                source: Some(zone_kernel_event_stream_update::Source::Syscalls(
+                    ZoneKernelSyscallSource {
+                        enabled_syscalls: enabled_syscalls.unwrap_or_default(),
+                    },
+                )),
             })),
         };
         let stream = Self::input_stream_kernel_events(event, cancel_rx);

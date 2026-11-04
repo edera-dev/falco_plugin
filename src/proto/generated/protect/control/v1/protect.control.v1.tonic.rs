@@ -142,6 +142,32 @@ pub mod control_service_client {
                 );
             self.inner.server_streaming(req, path, codec).await
         }
+        pub async fn snoop_control(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SnoopControlRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::SnoopControlReply>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/SnoopControl",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "SnoopControl"),
+                );
+            self.inner.server_streaming(req, path, codec).await
+        }
         pub async fn get_host_cpu_topology(
             &mut self,
             request: impl tonic::IntoRequest<super::GetHostCpuTopologyRequest>,
@@ -167,6 +193,35 @@ pub mod control_service_client {
                     GrpcMethod::new(
                         "protect.control.v1.ControlService",
                         "GetHostCpuTopology",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_host_resources(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetHostResourcesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetHostResourcesReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/GetHostResources",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "GetHostResources",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -340,6 +395,37 @@ pub mod control_service_client {
                 );
             self.inner.streaming(req, path, codec).await
         }
+        pub async fn import_packed_image(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<
+                Message = super::ImportPackedImageRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::ImportPackedImageReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ImportPackedImage",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "ImportPackedImage",
+                    ),
+                );
+            self.inner.client_streaming(req, path, codec).await
+        }
         pub async fn remove_image(
             &mut self,
             request: impl tonic::IntoRequest<super::RemoveImageRequest>,
@@ -363,6 +449,32 @@ pub mod control_service_client {
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new("protect.control.v1.ControlService", "RemoveImage"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn prune_images(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PruneImagesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PruneImagesReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/PruneImages",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "PruneImages"),
                 );
             self.inner.unary(req, path, codec).await
         }
@@ -391,6 +503,35 @@ pub mod control_service_client {
                     GrpcMethod::new("protect.control.v1.ControlService", "ListImages"),
                 );
             self.inner.server_streaming(req, path, codec).await
+        }
+        pub async fn list_kernel_variants(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListKernelVariantsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListKernelVariantsReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ListKernelVariants",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "ListKernelVariants",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
         }
         pub async fn create_zone(
             &mut self,
@@ -441,6 +582,243 @@ pub mod control_service_client {
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new("protect.control.v1.ControlService", "DestroyZone"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn suspend_zone(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SuspendZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SuspendZoneReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/SuspendZone",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "SuspendZone"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn resume_zone(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ResumeZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ResumeZoneReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ResumeZone",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "ResumeZone"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn fork_zone(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ForkZoneRequest>,
+        ) -> std::result::Result<tonic::Response<super::ForkZoneReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ForkZone",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "ForkZone"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn export_zone(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ExportZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::ExportZoneReply>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ExportZone",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "ExportZone"),
+                );
+            self.inner.server_streaming(req, path, codec).await
+        }
+        pub async fn import_zone(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<Message = super::ImportZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ImportZoneReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ImportZone",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "ImportZone"),
+                );
+            self.inner.client_streaming(req, path, codec).await
+        }
+        pub async fn replicate_zone(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReplicateZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReplicateZoneReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ReplicateZone",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "ReplicateZone"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn claim_restored_zone(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ClaimRestoredZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ClaimRestoredZoneReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ClaimRestoredZone",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "ClaimRestoredZone",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn start_restored_zone(
+            &mut self,
+            request: impl tonic::IntoRequest<super::StartRestoredZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::StartRestoredZoneReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/StartRestoredZone",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "StartRestoredZone",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn adopt_workload(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AdoptWorkloadRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AdoptWorkloadReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/AdoptWorkload",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("protect.control.v1.ControlService", "AdoptWorkload"),
                 );
             self.inner.unary(req, path, codec).await
         }
@@ -546,6 +924,93 @@ pub mod control_service_client {
                 );
             self.inner.server_streaming(req, path, codec).await
         }
+        pub async fn discover_services(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DiscoverServicesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::DiscoverServicesReply>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/DiscoverServices",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "DiscoverServices",
+                    ),
+                );
+            self.inner.server_streaming(req, path, codec).await
+        }
+        pub async fn get_zones_vcpu_infos(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetZonesVcpuInfosRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::GetZonesVcpuInfosReply>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/GetZonesVcpuInfos",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "GetZonesVcpuInfos",
+                    ),
+                );
+            self.inner.server_streaming(req, path, codec).await
+        }
+        pub async fn set_zone_vcpu_affinity(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetZoneVcpuAffinityRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SetZoneVcpuAffinityReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/SetZoneVcpuAffinity",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "SetZoneVcpuAffinity",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         pub async fn update_zone_resources(
             &mut self,
             request: impl tonic::IntoRequest<super::UpdateZoneResourcesRequest>,
@@ -600,6 +1065,64 @@ pub mod control_service_client {
                     GrpcMethod::new(
                         "protect.control.v1.ControlService",
                         "ConfigureZoneNetwork",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn advertise_zone_service(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AdvertiseZoneServiceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AdvertiseZoneServiceReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/AdvertiseZoneService",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "AdvertiseZoneService",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn unadvertise_zone_service(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UnadvertiseZoneServiceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UnadvertiseZoneServiceReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/UnadvertiseZoneService",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "UnadvertiseZoneService",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -832,6 +1355,35 @@ pub mod control_service_client {
                     GrpcMethod::new(
                         "protect.control.v1.ControlService",
                         "DestroyWorkload",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn update_workload_resources(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateWorkloadResourcesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UpdateWorkloadResourcesReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/UpdateWorkloadResources",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "UpdateWorkloadResources",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -1121,6 +1673,66 @@ pub mod control_service_client {
                 );
             self.inner.streaming(req, path, codec).await
         }
+        pub async fn dial_object_capability(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<
+                Message = super::DialObjectCapabilityRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::DialObjectCapabilityReply>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/DialObjectCapability",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "DialObjectCapability",
+                    ),
+                );
+            self.inner.streaming(req, path, codec).await
+        }
+        pub async fn list_object_capabilities(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListObjectCapabilitiesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::ListObjectCapabilitiesReply>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protect.control.v1.ControlService/ListObjectCapabilities",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protect.control.v1.ControlService",
+                        "ListObjectCapabilities",
+                    ),
+                );
+            self.inner.server_streaming(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -1153,11 +1765,31 @@ pub mod control_service_server {
             &self,
             request: tonic::Request<super::SnoopIdmRequest>,
         ) -> std::result::Result<tonic::Response<Self::SnoopIdmStream>, tonic::Status>;
+        /// Server streaming response type for the SnoopControl method.
+        type SnoopControlStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<super::SnoopControlReply, tonic::Status>,
+            >
+            + std::marker::Send
+            + 'static;
+        async fn snoop_control(
+            &self,
+            request: tonic::Request<super::SnoopControlRequest>,
+        ) -> std::result::Result<
+            tonic::Response<Self::SnoopControlStream>,
+            tonic::Status,
+        >;
         async fn get_host_cpu_topology(
             &self,
             request: tonic::Request<super::GetHostCpuTopologyRequest>,
         ) -> std::result::Result<
             tonic::Response<super::GetHostCpuTopologyReply>,
+            tonic::Status,
+        >;
+        async fn get_host_resources(
+            &self,
+            request: tonic::Request<super::GetHostResourcesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetHostResourcesReply>,
             tonic::Status,
         >;
         async fn list_devices(
@@ -1220,11 +1852,25 @@ pub mod control_service_server {
             tonic::Response<Self::ImportImageStream>,
             tonic::Status,
         >;
+        async fn import_packed_image(
+            &self,
+            request: tonic::Request<tonic::Streaming<super::ImportPackedImageRequest>>,
+        ) -> std::result::Result<
+            tonic::Response<super::ImportPackedImageReply>,
+            tonic::Status,
+        >;
         async fn remove_image(
             &self,
             request: tonic::Request<super::RemoveImageRequest>,
         ) -> std::result::Result<
             tonic::Response<super::RemoveImageReply>,
+            tonic::Status,
+        >;
+        async fn prune_images(
+            &self,
+            request: tonic::Request<super::PruneImagesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PruneImagesReply>,
             tonic::Status,
         >;
         /// Server streaming response type for the ListImages method.
@@ -1237,6 +1883,13 @@ pub mod control_service_server {
             &self,
             request: tonic::Request<super::ListImagesRequest>,
         ) -> std::result::Result<tonic::Response<Self::ListImagesStream>, tonic::Status>;
+        async fn list_kernel_variants(
+            &self,
+            request: tonic::Request<super::ListKernelVariantsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListKernelVariantsReply>,
+            tonic::Status,
+        >;
         async fn create_zone(
             &self,
             request: tonic::Request<super::CreateZoneRequest>,
@@ -1246,6 +1899,63 @@ pub mod control_service_server {
             request: tonic::Request<super::DestroyZoneRequest>,
         ) -> std::result::Result<
             tonic::Response<super::DestroyZoneReply>,
+            tonic::Status,
+        >;
+        async fn suspend_zone(
+            &self,
+            request: tonic::Request<super::SuspendZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SuspendZoneReply>,
+            tonic::Status,
+        >;
+        async fn resume_zone(
+            &self,
+            request: tonic::Request<super::ResumeZoneRequest>,
+        ) -> std::result::Result<tonic::Response<super::ResumeZoneReply>, tonic::Status>;
+        async fn fork_zone(
+            &self,
+            request: tonic::Request<super::ForkZoneRequest>,
+        ) -> std::result::Result<tonic::Response<super::ForkZoneReply>, tonic::Status>;
+        /// Server streaming response type for the ExportZone method.
+        type ExportZoneStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<super::ExportZoneReply, tonic::Status>,
+            >
+            + std::marker::Send
+            + 'static;
+        async fn export_zone(
+            &self,
+            request: tonic::Request<super::ExportZoneRequest>,
+        ) -> std::result::Result<tonic::Response<Self::ExportZoneStream>, tonic::Status>;
+        async fn import_zone(
+            &self,
+            request: tonic::Request<tonic::Streaming<super::ImportZoneRequest>>,
+        ) -> std::result::Result<tonic::Response<super::ImportZoneReply>, tonic::Status>;
+        async fn replicate_zone(
+            &self,
+            request: tonic::Request<super::ReplicateZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReplicateZoneReply>,
+            tonic::Status,
+        >;
+        async fn claim_restored_zone(
+            &self,
+            request: tonic::Request<super::ClaimRestoredZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ClaimRestoredZoneReply>,
+            tonic::Status,
+        >;
+        async fn start_restored_zone(
+            &self,
+            request: tonic::Request<super::StartRestoredZoneRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::StartRestoredZoneReply>,
+            tonic::Status,
+        >;
+        async fn adopt_workload(
+            &self,
+            request: tonic::Request<super::AdoptWorkloadRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AdoptWorkloadReply>,
             tonic::Status,
         >;
         async fn resolve_zone_id(
@@ -1276,6 +1986,39 @@ pub mod control_service_server {
             &self,
             request: tonic::Request<super::ListZonesRequest>,
         ) -> std::result::Result<tonic::Response<Self::ListZonesStream>, tonic::Status>;
+        /// Server streaming response type for the DiscoverServices method.
+        type DiscoverServicesStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<super::DiscoverServicesReply, tonic::Status>,
+            >
+            + std::marker::Send
+            + 'static;
+        async fn discover_services(
+            &self,
+            request: tonic::Request<super::DiscoverServicesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<Self::DiscoverServicesStream>,
+            tonic::Status,
+        >;
+        /// Server streaming response type for the GetZonesVcpuInfos method.
+        type GetZonesVcpuInfosStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<super::GetZonesVcpuInfosReply, tonic::Status>,
+            >
+            + std::marker::Send
+            + 'static;
+        async fn get_zones_vcpu_infos(
+            &self,
+            request: tonic::Request<super::GetZonesVcpuInfosRequest>,
+        ) -> std::result::Result<
+            tonic::Response<Self::GetZonesVcpuInfosStream>,
+            tonic::Status,
+        >;
+        async fn set_zone_vcpu_affinity(
+            &self,
+            request: tonic::Request<super::SetZoneVcpuAffinityRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SetZoneVcpuAffinityReply>,
+            tonic::Status,
+        >;
         async fn update_zone_resources(
             &self,
             request: tonic::Request<super::UpdateZoneResourcesRequest>,
@@ -1288,6 +2031,20 @@ pub mod control_service_server {
             request: tonic::Request<super::ConfigureZoneNetworkRequest>,
         ) -> std::result::Result<
             tonic::Response<super::ConfigureZoneNetworkReply>,
+            tonic::Status,
+        >;
+        async fn advertise_zone_service(
+            &self,
+            request: tonic::Request<super::AdvertiseZoneServiceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AdvertiseZoneServiceReply>,
+            tonic::Status,
+        >;
+        async fn unadvertise_zone_service(
+            &self,
+            request: tonic::Request<super::UnadvertiseZoneServiceRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UnadvertiseZoneServiceReply>,
             tonic::Status,
         >;
         /// Server streaming response type for the AttachZoneConsole method.
@@ -1367,6 +2124,13 @@ pub mod control_service_server {
             request: tonic::Request<super::DestroyWorkloadRequest>,
         ) -> std::result::Result<
             tonic::Response<super::DestroyWorkloadReply>,
+            tonic::Status,
+        >;
+        async fn update_workload_resources(
+            &self,
+            request: tonic::Request<super::UpdateWorkloadResourcesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UpdateWorkloadResourcesReply>,
             tonic::Status,
         >;
         /// Server streaming response type for the AttachWorkloadConsole method.
@@ -1461,6 +2225,38 @@ pub mod control_service_server {
             request: tonic::Request<tonic::Streaming<super::DialNetworkSocketRequest>>,
         ) -> std::result::Result<
             tonic::Response<Self::DialNetworkSocketStream>,
+            tonic::Status,
+        >;
+        /// Server streaming response type for the DialObjectCapability method.
+        type DialObjectCapabilityStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<
+                    super::DialObjectCapabilityReply,
+                    tonic::Status,
+                >,
+            >
+            + std::marker::Send
+            + 'static;
+        async fn dial_object_capability(
+            &self,
+            request: tonic::Request<tonic::Streaming<super::DialObjectCapabilityRequest>>,
+        ) -> std::result::Result<
+            tonic::Response<Self::DialObjectCapabilityStream>,
+            tonic::Status,
+        >;
+        /// Server streaming response type for the ListObjectCapabilities method.
+        type ListObjectCapabilitiesStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<
+                    super::ListObjectCapabilitiesReply,
+                    tonic::Status,
+                >,
+            >
+            + std::marker::Send
+            + 'static;
+        async fn list_object_capabilities(
+            &self,
+            request: tonic::Request<super::ListObjectCapabilitiesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<Self::ListObjectCapabilitiesStream>,
             tonic::Status,
         >;
     }
@@ -1632,6 +2428,52 @@ pub mod control_service_server {
                     };
                     Box::pin(fut)
                 }
+                "/protect.control.v1.ControlService/SnoopControl" => {
+                    #[allow(non_camel_case_types)]
+                    struct SnoopControlSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::ServerStreamingService<super::SnoopControlRequest>
+                    for SnoopControlSvc<T> {
+                        type Response = super::SnoopControlReply;
+                        type ResponseStream = T::SnoopControlStream;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::ResponseStream>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SnoopControlRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::snoop_control(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SnoopControlSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 "/protect.control.v1.ControlService/GetHostCpuTopology" => {
                     #[allow(non_camel_case_types)]
                     struct GetHostCpuTopologySvc<T: ControlService>(pub Arc<T>);
@@ -1666,6 +2508,52 @@ pub mod control_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetHostCpuTopologySvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/GetHostResources" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetHostResourcesSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::GetHostResourcesRequest>
+                    for GetHostResourcesSvc<T> {
+                        type Response = super::GetHostResourcesReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetHostResourcesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::get_host_resources(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetHostResourcesSvc(inner);
                         let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -1976,6 +2864,55 @@ pub mod control_service_server {
                     };
                     Box::pin(fut)
                 }
+                "/protect.control.v1.ControlService/ImportPackedImage" => {
+                    #[allow(non_camel_case_types)]
+                    struct ImportPackedImageSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::ClientStreamingService<
+                        super::ImportPackedImageRequest,
+                    > for ImportPackedImageSvc<T> {
+                        type Response = super::ImportPackedImageReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                tonic::Streaming<super::ImportPackedImageRequest>,
+                            >,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::import_packed_image(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ImportPackedImageSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.client_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 "/protect.control.v1.ControlService/RemoveImage" => {
                     #[allow(non_camel_case_types)]
                     struct RemoveImageSvc<T: ControlService>(pub Arc<T>);
@@ -2006,6 +2943,51 @@ pub mod control_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = RemoveImageSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/PruneImages" => {
+                    #[allow(non_camel_case_types)]
+                    struct PruneImagesSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::PruneImagesRequest>
+                    for PruneImagesSvc<T> {
+                        type Response = super::PruneImagesReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::PruneImagesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::prune_images(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = PruneImagesSvc(inner);
                         let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -2063,6 +3045,52 @@ pub mod control_service_server {
                                 max_encoding_message_size,
                             );
                         let res = grpc.server_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/ListKernelVariants" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListKernelVariantsSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::ListKernelVariantsRequest>
+                    for ListKernelVariantsSvc<T> {
+                        type Response = super::ListKernelVariantsReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListKernelVariantsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::list_kernel_variants(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListKernelVariantsSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
                         Ok(res)
                     };
                     Box::pin(fut)
@@ -2142,6 +3170,416 @@ pub mod control_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = DestroyZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/SuspendZone" => {
+                    #[allow(non_camel_case_types)]
+                    struct SuspendZoneSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::SuspendZoneRequest>
+                    for SuspendZoneSvc<T> {
+                        type Response = super::SuspendZoneReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SuspendZoneRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::suspend_zone(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SuspendZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/ResumeZone" => {
+                    #[allow(non_camel_case_types)]
+                    struct ResumeZoneSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::ResumeZoneRequest>
+                    for ResumeZoneSvc<T> {
+                        type Response = super::ResumeZoneReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ResumeZoneRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::resume_zone(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ResumeZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/ForkZone" => {
+                    #[allow(non_camel_case_types)]
+                    struct ForkZoneSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::ForkZoneRequest>
+                    for ForkZoneSvc<T> {
+                        type Response = super::ForkZoneReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ForkZoneRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::fork_zone(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ForkZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/ExportZone" => {
+                    #[allow(non_camel_case_types)]
+                    struct ExportZoneSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::ServerStreamingService<super::ExportZoneRequest>
+                    for ExportZoneSvc<T> {
+                        type Response = super::ExportZoneReply;
+                        type ResponseStream = T::ExportZoneStream;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::ResponseStream>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ExportZoneRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::export_zone(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ExportZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/ImportZone" => {
+                    #[allow(non_camel_case_types)]
+                    struct ImportZoneSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::ClientStreamingService<super::ImportZoneRequest>
+                    for ImportZoneSvc<T> {
+                        type Response = super::ImportZoneReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                tonic::Streaming<super::ImportZoneRequest>,
+                            >,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::import_zone(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ImportZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.client_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/ReplicateZone" => {
+                    #[allow(non_camel_case_types)]
+                    struct ReplicateZoneSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::ReplicateZoneRequest>
+                    for ReplicateZoneSvc<T> {
+                        type Response = super::ReplicateZoneReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ReplicateZoneRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::replicate_zone(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ReplicateZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/ClaimRestoredZone" => {
+                    #[allow(non_camel_case_types)]
+                    struct ClaimRestoredZoneSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::ClaimRestoredZoneRequest>
+                    for ClaimRestoredZoneSvc<T> {
+                        type Response = super::ClaimRestoredZoneReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ClaimRestoredZoneRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::claim_restored_zone(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ClaimRestoredZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/StartRestoredZone" => {
+                    #[allow(non_camel_case_types)]
+                    struct StartRestoredZoneSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::StartRestoredZoneRequest>
+                    for StartRestoredZoneSvc<T> {
+                        type Response = super::StartRestoredZoneReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::StartRestoredZoneRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::start_restored_zone(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = StartRestoredZoneSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/AdoptWorkload" => {
+                    #[allow(non_camel_case_types)]
+                    struct AdoptWorkloadSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::AdoptWorkloadRequest>
+                    for AdoptWorkloadSvc<T> {
+                        type Response = super::AdoptWorkloadReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::AdoptWorkloadRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::adopt_workload(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = AdoptWorkloadSvc(inner);
                         let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -2340,6 +3778,151 @@ pub mod control_service_server {
                     };
                     Box::pin(fut)
                 }
+                "/protect.control.v1.ControlService/DiscoverServices" => {
+                    #[allow(non_camel_case_types)]
+                    struct DiscoverServicesSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::ServerStreamingService<
+                        super::DiscoverServicesRequest,
+                    > for DiscoverServicesSvc<T> {
+                        type Response = super::DiscoverServicesReply;
+                        type ResponseStream = T::DiscoverServicesStream;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::ResponseStream>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DiscoverServicesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::discover_services(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = DiscoverServicesSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/GetZonesVcpuInfos" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetZonesVcpuInfosSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::ServerStreamingService<
+                        super::GetZonesVcpuInfosRequest,
+                    > for GetZonesVcpuInfosSvc<T> {
+                        type Response = super::GetZonesVcpuInfosReply;
+                        type ResponseStream = T::GetZonesVcpuInfosStream;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::ResponseStream>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetZonesVcpuInfosRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::get_zones_vcpu_infos(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetZonesVcpuInfosSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/SetZoneVcpuAffinity" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetZoneVcpuAffinitySvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::SetZoneVcpuAffinityRequest>
+                    for SetZoneVcpuAffinitySvc<T> {
+                        type Response = super::SetZoneVcpuAffinityReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SetZoneVcpuAffinityRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::set_zone_vcpu_affinity(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SetZoneVcpuAffinitySvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 "/protect.control.v1.ControlService/UpdateZoneResources" => {
                     #[allow(non_camel_case_types)]
                     struct UpdateZoneResourcesSvc<T: ControlService>(pub Arc<T>);
@@ -2423,6 +4006,104 @@ pub mod control_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ConfigureZoneNetworkSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/AdvertiseZoneService" => {
+                    #[allow(non_camel_case_types)]
+                    struct AdvertiseZoneServiceSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::AdvertiseZoneServiceRequest>
+                    for AdvertiseZoneServiceSvc<T> {
+                        type Response = super::AdvertiseZoneServiceReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::AdvertiseZoneServiceRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::advertise_zone_service(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = AdvertiseZoneServiceSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/UnadvertiseZoneService" => {
+                    #[allow(non_camel_case_types)]
+                    struct UnadvertiseZoneServiceSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::UnadvertiseZoneServiceRequest>
+                    for UnadvertiseZoneServiceSvc<T> {
+                        type Response = super::UnadvertiseZoneServiceReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UnadvertiseZoneServiceRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::unadvertise_zone_service(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UnadvertiseZoneServiceSvc(inner);
                         let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -2802,6 +4483,57 @@ pub mod control_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = DestroyWorkloadSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/UpdateWorkloadResources" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpdateWorkloadResourcesSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::UnaryService<super::UpdateWorkloadResourcesRequest>
+                    for UpdateWorkloadResourcesSvc<T> {
+                        type Response = super::UpdateWorkloadResourcesReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                super::UpdateWorkloadResourcesRequest,
+                            >,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::update_workload_resources(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UpdateWorkloadResourcesSvc(inner);
                         let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -3295,6 +5027,109 @@ pub mod control_service_server {
                                 max_encoding_message_size,
                             );
                         let res = grpc.streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/DialObjectCapability" => {
+                    #[allow(non_camel_case_types)]
+                    struct DialObjectCapabilitySvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::StreamingService<super::DialObjectCapabilityRequest>
+                    for DialObjectCapabilitySvc<T> {
+                        type Response = super::DialObjectCapabilityReply;
+                        type ResponseStream = T::DialObjectCapabilityStream;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::ResponseStream>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                tonic::Streaming<super::DialObjectCapabilityRequest>,
+                            >,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::dial_object_capability(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = DialObjectCapabilitySvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protect.control.v1.ControlService/ListObjectCapabilities" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListObjectCapabilitiesSvc<T: ControlService>(pub Arc<T>);
+                    impl<
+                        T: ControlService,
+                    > tonic::server::ServerStreamingService<
+                        super::ListObjectCapabilitiesRequest,
+                    > for ListObjectCapabilitiesSvc<T> {
+                        type Response = super::ListObjectCapabilitiesReply;
+                        type ResponseStream = T::ListObjectCapabilitiesStream;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::ResponseStream>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListObjectCapabilitiesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as ControlService>::list_object_capabilities(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListObjectCapabilitiesSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
                         Ok(res)
                     };
                     Box::pin(fut)
