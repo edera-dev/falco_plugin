@@ -104,3 +104,119 @@ pub fn read_enabled_syscalls() -> Result<HashSet<u32>> {
 
     Ok(enabled)
 }
+
+/// The syscall set we ask zones for when not mirroring the host's set: the zone's own
+/// default set (protect `crates/zone/src/kernel_events.rs`, unchanged from v1.13.1 to
+/// v1.13.4) plus process exit, which the default set lacks. Without process exit, the
+/// thread table never drops a thread, so it grows for as long as Falco runs and stale
+/// entries mislabel reused PIDs.
+pub fn default_zone_syscalls() -> Vec<u32> {
+    [
+        syscall_codes::PPM_SC_ACCEPT,
+        syscall_codes::PPM_SC_ACCEPT4,
+        syscall_codes::PPM_SC_BIND,
+        syscall_codes::PPM_SC_BPF,
+        syscall_codes::PPM_SC_CAPSET,
+        syscall_codes::PPM_SC_CHDIR,
+        syscall_codes::PPM_SC_CHMOD,
+        syscall_codes::PPM_SC_CHROOT,
+        syscall_codes::PPM_SC_CLONE,
+        syscall_codes::PPM_SC_CLONE3,
+        syscall_codes::PPM_SC_CLOSE,
+        syscall_codes::PPM_SC_CONNECT,
+        syscall_codes::PPM_SC_COPY_FILE_RANGE,
+        syscall_codes::PPM_SC_CREAT,
+        syscall_codes::PPM_SC_DUP,
+        syscall_codes::PPM_SC_DUP2,
+        syscall_codes::PPM_SC_DUP3,
+        syscall_codes::PPM_SC_EVENTFD,
+        syscall_codes::PPM_SC_EVENTFD2,
+        syscall_codes::PPM_SC_EXECVE,
+        syscall_codes::PPM_SC_EXECVEAT,
+        syscall_codes::PPM_SC_FCHDIR,
+        syscall_codes::PPM_SC_FCHMOD,
+        syscall_codes::PPM_SC_FCHMODAT,
+        syscall_codes::PPM_SC_FCNTL,
+        syscall_codes::PPM_SC_FLOCK,
+        syscall_codes::PPM_SC_FORK,
+        syscall_codes::PPM_SC_INOTIFY_INIT,
+        syscall_codes::PPM_SC_INOTIFY_INIT1,
+        syscall_codes::PPM_SC_IOCTL,
+        syscall_codes::PPM_SC_KILL,
+        syscall_codes::PPM_SC_LINK,
+        syscall_codes::PPM_SC_LINKAT,
+        syscall_codes::PPM_SC_LISTEN,
+        syscall_codes::PPM_SC_MKDIR,
+        syscall_codes::PPM_SC_MKDIRAT,
+        syscall_codes::PPM_SC_MOUNT,
+        syscall_codes::PPM_SC_OPEN,
+        syscall_codes::PPM_SC_OPEN_BY_HANDLE_AT,
+        syscall_codes::PPM_SC_OPENAT,
+        syscall_codes::PPM_SC_OPENAT2,
+        syscall_codes::PPM_SC_PIPE,
+        syscall_codes::PPM_SC_PIPE2,
+        syscall_codes::PPM_SC_PRLIMIT64,
+        syscall_codes::PPM_SC_PTRACE,
+        syscall_codes::PPM_SC_QUOTACTL,
+        syscall_codes::PPM_SC_RECVFROM,
+        syscall_codes::PPM_SC_RECVMSG,
+        syscall_codes::PPM_SC_RENAME,
+        syscall_codes::PPM_SC_RENAMEAT,
+        syscall_codes::PPM_SC_RENAMEAT2,
+        syscall_codes::PPM_SC_RMDIR,
+        syscall_codes::PPM_SC_SECCOMP,
+        syscall_codes::PPM_SC_SENDMMSG,
+        syscall_codes::PPM_SC_SENDTO,
+        syscall_codes::PPM_SC_SETGID,
+        syscall_codes::PPM_SC_SETNS,
+        syscall_codes::PPM_SC_SETPGID,
+        syscall_codes::PPM_SC_SETRESGID,
+        syscall_codes::PPM_SC_SETRESUID,
+        syscall_codes::PPM_SC_SETRLIMIT,
+        syscall_codes::PPM_SC_SETSID,
+        syscall_codes::PPM_SC_SETSOCKOPT,
+        syscall_codes::PPM_SC_SETUID,
+        syscall_codes::PPM_SC_SHUTDOWN,
+        syscall_codes::PPM_SC_SIGNALFD,
+        syscall_codes::PPM_SC_SIGNALFD4,
+        syscall_codes::PPM_SC_SOCKET,
+        syscall_codes::PPM_SC_SOCKETPAIR,
+        syscall_codes::PPM_SC_SYMLINK,
+        syscall_codes::PPM_SC_SYMLINKAT,
+        syscall_codes::PPM_SC_TGKILL,
+        syscall_codes::PPM_SC_TIMERFD_CREATE,
+        syscall_codes::PPM_SC_TKILL,
+        syscall_codes::PPM_SC_UMOUNT2,
+        syscall_codes::PPM_SC_UNLINK,
+        syscall_codes::PPM_SC_UNLINKAT,
+        syscall_codes::PPM_SC_UNSHARE,
+        syscall_codes::PPM_SC_USERFAULTFD,
+        syscall_codes::PPM_SC_VFORK,
+        syscall_codes::PPM_SC_SCHED_PROCESS_EXIT,
+    ]
+    .into_iter()
+    .map(|code| code as u32)
+    .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_zone_syscalls_track_process_lifecycle() {
+        let set = default_zone_syscalls();
+        for code in [
+            syscall_codes::PPM_SC_SCHED_PROCESS_EXIT,
+            syscall_codes::PPM_SC_CLONE,
+            syscall_codes::PPM_SC_CLONE3,
+            syscall_codes::PPM_SC_FORK,
+            syscall_codes::PPM_SC_VFORK,
+            syscall_codes::PPM_SC_EXECVE,
+            syscall_codes::PPM_SC_EXECVEAT,
+        ] {
+            assert!(set.contains(&(code as u32)), "{code:?} missing");
+        }
+        assert_eq!(set.len(), 81);
+    }
+}
