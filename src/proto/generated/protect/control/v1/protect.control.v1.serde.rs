@@ -25914,6 +25914,8 @@ impl<'de> serde::Deserialize<'de> for ZoneKernelEventStreamUpdate {
                     }
                 }
                 Ok(ZoneKernelEventStreamUpdate {
+                    // HAND-ADDED: see the field in protect.control.v1.rs.
+                    enabled_syscalls: Default::default(),
                     source: source__,
                 })
             }

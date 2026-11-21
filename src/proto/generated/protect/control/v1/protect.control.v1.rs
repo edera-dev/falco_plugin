@@ -2401,6 +2401,11 @@ pub mod monitor_zone_kernel_event_reply {
 /// stream whose source it does not know. A stream keeps the source it started with.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ZoneKernelEventStreamUpdate {
+    /// HAND-ADDED, not in the public proto: daemons up to Protect v1.13.x read the syscall
+    /// set only from this field (tag 2) and ignore `source`. Keep it when re-syncing protos;
+    /// see docs/design/zone-process-tracking.md.
+    #[prost(uint32, repeated, tag="2")]
+    pub enabled_syscalls: ::prost::alloc::vec::Vec<u32>,
     #[prost(oneof="zone_kernel_event_stream_update::Source", tags="3, 4")]
     pub source: ::core::option::Option<zone_kernel_event_stream_update::Source>,
 }

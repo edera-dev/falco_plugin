@@ -12,6 +12,7 @@ use crate::proto::generated::protect::control::v1::{
 use edera_client::{client::ControlClientProvider, dial::ControlDialAddress, events::EventStream};
 
 mod zone_creation_watcher;
+use libscap_bindings::types::ppm_sc_code as syscall_codes;
 use log::{debug, error, info, warn};
 use std::collections::HashMap;
 use tokio::{
@@ -199,19 +200,25 @@ impl Client {
             //
             // By the time falco has finished plugin init and we see zones, the map we scan to get this
             // info should be there.
+            //
+            // Falco's map never includes tracepoints, so add process exit: without it the
+            // thread table never drops exited threads.
             let res = enabled_syscalls::read_enabled_syscalls()
                 .ok()
-                .map(|syscalls| syscalls.into_iter().collect());
+                .map(|mut syscalls| {
+                    syscalls.insert(syscall_codes::PPM_SC_SCHED_PROCESS_EXIT as u32);
+                    syscalls.into_iter().collect()
+                });
 
             if res.is_none() {
-                // if we failed to read the map, fall back on None and the default set will be used
+                // if we failed to read the map, fall back on our default set
                 warn!(
                     "could not read falco's enabled syscalls eBPF map, is the modern eBPF host driver enabled?"
                 )
             }
-            res
+            res.or_else(|| Some(enabled_syscalls::default_zone_syscalls()))
         } else {
-            None
+            Some(enabled_syscalls::default_zone_syscalls())
         };
 
         // Get the stored client and sender
@@ -246,6 +253,23 @@ impl Client {
         Ok(())
     }
 
+    /// Daemons up to Protect v1.13.x read the syscall set only from the top-level
+    /// `enabled_syscalls` field; newer daemons read `source`. Send both, or released
+    /// daemons see an empty set and zones fall back to their default.
+    fn syscall_stream_request(zone_id: &str, syscalls: Vec<u32>) -> MonitorZoneKernelEventRequest {
+        MonitorZoneKernelEventRequest {
+            zone_id: zone_id.to_string(),
+            request: Some(zk_req::Request::Update(ZoneKernelEventStreamUpdate {
+                enabled_syscalls: syscalls.clone(),
+                source: Some(zone_kernel_event_stream_update::Source::Syscalls(
+                    ZoneKernelSyscallSource {
+                        enabled_syscalls: syscalls,
+                    },
+                )),
+            })),
+        }
+    }
+
     async fn run_syscall_stream(
         mut client: ControlServiceClient<Channel>,
         handler: mpsc::UnboundedSender<MonitorZoneKernelEventReply>,
@@ -255,16 +279,7 @@ impl Client {
         zone_exit_tx: mpsc::UnboundedSender<String>,
     ) -> Result<JoinSet<()>> {
         debug!("listening for kernel events from zone {}", zone_id);
-        let event = MonitorZoneKernelEventRequest {
-            zone_id: zone_id.clone(),
-            request: Some(zk_req::Request::Update(ZoneKernelEventStreamUpdate {
-                source: Some(zone_kernel_event_stream_update::Source::Syscalls(
-                    ZoneKernelSyscallSource {
-                        enabled_syscalls: enabled_syscalls.unwrap_or_default(),
-                    },
-                )),
-            })),
-        };
+        let event = Self::syscall_stream_request(&zone_id, enabled_syscalls.unwrap_or_default());
         let stream = Self::input_stream_kernel_events(event, cancel_rx);
 
         debug!("built stream");
@@ -357,5 +372,37 @@ impl Client {
             }
         }
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use prost::Message;
+
+    /// The update message as Protect v1.13.x daemons decode it.
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    struct LegacyUpdate {
+        #[prost(uint32, repeated, tag = "2")]
+        enabled_syscalls: Vec<u32>,
+    }
+
+    #[test]
+    fn released_daemons_read_the_requested_syscalls() {
+        let syscalls = enabled_syscalls::default_zone_syscalls();
+        let request = Client::syscall_stream_request("zone", syscalls.clone());
+        let Some(zk_req::Request::Update(update)) = request.request else {
+            panic!("expected an update request");
+        };
+        let legacy = LegacyUpdate::decode(update.encode_to_vec().as_slice()).unwrap();
+        assert_eq!(legacy.enabled_syscalls, syscalls);
+        assert_eq!(
+            update.source,
+            Some(zone_kernel_event_stream_update::Source::Syscalls(
+                ZoneKernelSyscallSource {
+                    enabled_syscalls: syscalls
+                }
+            ))
+        );
     }
 }

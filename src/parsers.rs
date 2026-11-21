@@ -184,18 +184,17 @@ pub fn has_retval(evt: &ZoneKernelSyscallEvent) -> bool {
         return false;
     }
     // The event has a return value if:
-    // * it is a syscall event (or a syscall-like metaevent).
     // * it is an exit event.
     // * it has at least one parameter. Some exit events are not instrumented, see
     // `PPME_SOCKET_GETSOCKNAME_X`
-    if (evt.event_category.contains("SYSCALL") || evt.event_category.contains("EC_METAEVENT"))
-        && !is_enter(evt)
-        && !evt.event_params.is_empty()
-    {
-        return true;
-    }
-
-    false
+    //
+    // libsinsp also requires the EC_SYSCALL or EC_METAEVENT category bit, read from its
+    // static event table. We deliberately don't consult `event_category`: it's a string
+    // the zone formats, and zones on Edera 1.13.x send "EC_TRACEPOINT" for every syscall
+    // event, which made every return value disappear (edera-dev/falco_plugin#154).
+    // Every exit event libscap defines is a syscall or metaevent exit whose first
+    // parameter is the return value, so the direction check is equivalent.
+    !is_enter(evt) && !evt.event_params.is_empty()
 }
 
 pub fn get_retval(evt: &ZoneKernelSyscallEvent) -> Option<i64> {
@@ -437,6 +436,28 @@ mod tests {
         assert!(has_retval(&evt));
         assert_eq!(get_retval(&evt), Some(3));
         assert_eq!(syscall_failed(&evt), Some(false));
+    }
+
+    #[test]
+    fn retval_does_not_depend_on_category_string() {
+        // Zones on Edera 1.13.x label every syscall event "EC_TRACEPOINT"
+        // (edera-dev/falco_plugin#154). The return value must still be read.
+        for category in ["EC_TRACEPOINT", "", "garbage"] {
+            let mut evt = exit_event_with_retval(event_codes::PPME_SYSCALL_OPEN_X, 3);
+            evt.event_category = category.to_string();
+            assert!(has_retval(&evt), "category {category:?}");
+            assert_eq!(get_retval(&evt), Some(3), "category {category:?}");
+        }
+    }
+
+    #[test]
+    fn generic_exit_and_paramless_exit_have_no_retval() {
+        let evt = exit_event_with_retval(event_codes::PPME_GENERIC_X, 0);
+        assert!(!has_retval(&evt));
+
+        let mut evt = exit_event_with_retval(event_codes::PPME_SOCKET_GETSOCKNAME_X, 0);
+        evt.event_params.clear();
+        assert!(!has_retval(&evt));
     }
 
     #[test]

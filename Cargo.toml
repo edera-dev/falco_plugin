@@ -55,7 +55,9 @@ log = "0.4.30"
 nix = { version = "0.31.3", features = ["signal"] }
 pin-project-lite = "0.2.17"
 prost = "0.14.3"
+strum = "0.28"
 strum_macros = "0.28"
+syscalls = { version = "0.6", default-features = false }
 tokio = { version = "1.52.3", features = ["full"] }
 tokio-stream = { version="0.1.18", features = ["sync"] }
 tonic = "0.14.6"
